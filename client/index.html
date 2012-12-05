@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>meisen</title>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/jquery-1.8.3.min.js"></script>
+<script src="/js/client.js"></script>
+</head>
+<body>
+<article id="login">
+  <form id="form-login" action="none" method="get" onsubmit="return false;">
+    <input type="text" id="name-login">
+  </form>
+  <div id="button-login">[ログイン]</div>
+  <div id="state-login">未接続</div>
+</article>
+<article id="chat">
+  <form action="none" method="get" onsubmit="sendMsg('inputx'); return false;">
+    <input type="text" id="inputx">
+  </form>
+  <a href="#" onclick="sendMsg('inputx'); return false">送信</a>
+</article>
+
+
+
+
+
+
+
+
+
+</body>
+</html>
