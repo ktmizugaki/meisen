@@ -5,6 +5,8 @@
 <title>meisen</title>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/jquery-1.8.3.min.js"></script>
+<script src="/js/underscore-min.js"></script>
+<script src="/js/connection.js"></script>
 <script src="/js/client.js"></script>
 </head>
 <body>
@@ -14,6 +16,15 @@
   </form>
   <div id="button-login">[ログイン]</div>
   <div id="state-login">未接続</div>
+</article>
+<article id="roomlist">
+  <h1>ロビー</h1>
+  <div id="button-newroom">[部屋作成]</div>
+  <div id="room">
+    <p>部屋一覧</p>
+    <div id="list-room">
+    </div>
+  </div>
 </article>
 <article id="chat">
   <form action="none" method="get" onsubmit="sendMsg('inputx'); return false;">
