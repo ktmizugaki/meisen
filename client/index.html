@@ -14,7 +14,7 @@
   <article id="login" class="fixed">
     <h2 class="name">ログイン</h2>
     <div class="content centerize">
-      <form id="form-login" action="none" method="get" onsubmit="return false;">
+      <form id="form-login" action="none" method="get">
         名前：<input type="text" id="name-login" size="24" maxlength="16">
       </form>
       <a href="" id="button-login">[ログイン]</a>
@@ -24,7 +24,7 @@
   <article id="roomlist" class="fixed">
     <h2 class="name">ロビー</h2>
     <div class="content">
-      <div><a href="" id="button-login">[部屋作成]</a></div>
+      <div><a href="" id="button-newroom">[部屋作成]</a></div>
       <div style="height: 1.5em;"></div>
       <div>部屋一覧&nbsp;<a href="" id="button-roomlist">[再読込]</a></div>
       <div id="list-room" class="vert-scroll">
@@ -32,7 +32,7 @@
       </div>
     </div>
   </article>
-  <article id="room" class="relative on">
+  <article id="room" class="relative">
     <div class="content">
       <div id="room-left" class="border-box">
         <h2 class="name">部屋:<span id="roomname">部屋1001</span></h2>
@@ -40,14 +40,16 @@
       <div id="room-right" class="border-box">
         <div id="room-right-top">
           <div id="room-name-list" class="vert-scroll border-box">
+<div class="member">Member000000000000000001</div>
           </div>
         </div>
         <div id="room-right-bottom">
           <div id="chat-box" class="border-box">
             <div id="chat" class="vert-scroll">
+<div class="message">Message00000000000000001</div>
             </div>
             <form id="form-chat" action="" method="get">
-              <input type="text" id="chat-input">
+              <input type="text" id="chat-room">
             </form>
           </div>
         </div>

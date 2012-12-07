@@ -1,24 +1,24 @@
 .on {
-  opacity: 1;
+  display: block;
 }
 .off {
-  opacity: 0;
-  height: 0;
+  display: none;
 }
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 article {
+  position: absolute;
   min-width: 640px; min-height: 360px;
   border: 1px solid #ffcc99;
 }
 article.fixed {
-  position: relative;
+  position: absolute;
   width: 640px; height: 360px;
 }
 article.relative {
   position: absolute;
-  position: relative;
+  position: absolute;
   left: 8px; top: 8px;
   right: 8px; bottom: 8px;
 }
@@ -88,21 +88,27 @@ div.vert-scroll {
   width: 158px; bottom: 0px;
 }
 
-/********** room-left      **********/
+/********** room-left        **********/
 #room h2.name {
   left: 0; top: 0;
 }
 
-/********** room-right     **********/
+/********** room-right       **********/
+
+/****** room-right-top ********/
 #room #room-right-top {
   position: relative;
   width: 158px; height: 35%;
 }
-#room-name-list {
+#room #room-name-list {
   width: 158px;
   top: 0; bottom: 0px;
 }
+#room #room-name-list .member {
+  word-break: break-all;
+}
 
+/****** room-right-bottom *****/
 #room #room-right-bottom {
   position: relative;
   width: 158px; height: 65%;
@@ -111,18 +117,22 @@ div.vert-scroll {
   width: 158px;
   top: 0; bottom: 0;
 }
-#chat-box #chat {
+#room #chat {
   position: absolute;
   width: 158px;
   top: 0px; bottom: 1.2em;
 }
-#chat-box #form-chat {
+#room .message {
+  word-break: break-all;
+}
+
+#room #form-chat {
   position: absolute;
   width: 158px; height: 1.2em;
   bottom: 0px;
   border-bottom: 1px solid #000;
 }
-#chat-box #chat-input {
+#room #chat-room {
   position: absolute;
   width: 158px; height: 1.2em;
   bottom: 0px;

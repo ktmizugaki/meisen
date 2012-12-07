@@ -6,26 +6,37 @@ var client = (function(){
     'try multiple transports': false,
     reconnect: false
   };
+  client.setActive = function(id) {
+    $('article').removeClass('on').addClass('off');
+    if (id) {
+      $(id).removeClass('off').addClass('on');
+    }
+  };
   client.init = function() {
     console.log('init');
+    client.setActive('#login');
     $('#form-login').submit(function() {
       client.connect();
       return false;
     });
-    $('#button-login').click(function(e) {
+    $('#button-login').click(function() {
       client.connect();
       return false;
     });
-    $('#button-newroom').click(function(e) {
+    $('#button-newroom').click(function() {
       client.prepareRoom();
       return false;
     });
-    $('#button-roomlist').click(function(e) {
+    $('#button-roomlist').click(function() {
       client.loadRoomList();
       return false;
     });
     $(document).on('click', '#list-room .room', function(){
-      console.log('click:'+ $(this).attr('roomid'));
+      client.enterRoom($(this).attr('roomid'));
+      return false;
+    });
+    $('#form-chat').submit(function() {
+      client.sendChat(this);
       return false;
     });
   };
@@ -45,6 +56,7 @@ var client = (function(){
   };
   client.reset = function() {
     console.log('reset');
+    client.setActive('#login');
     if (client.socket !== null) {
         client.socket.disconnect();
     }
@@ -72,16 +84,56 @@ var client = (function(){
       });
     }
   };
+  client.enterRoom = function(roomid) {
+    if (client.socket !== null) {
+      client.socket.enterRoom(roomid);
+    }
+  };
+  client.sendChat = function(form) {
+    if (client.socket !== null) {
+      $input = $('#chat-room', form);
+      client.socket.sendChat($input.val());
+      $input.val("");
+    }
+  };
 
   client.ready = function() {
+    client.setActive('#roomlist');
     client.loadRoomList();
   }
   client.roomlist = function(list) {
     var $div = $('#list-room');
     $div.empty();
-    _.each(list, function(data) {
-      $div.append($('<a href="" class="room"></a>').attr('roomid', data).text(data));
+    _.each(list, function(room) {
+      $div.append($('<a href="" class="room"></a>').attr('roomid', room).text(room));
     });
+  };
+  client.enter = function(roominfo) {
+    client.setActive('#room');
+    $('#room #roomname').text(roominfo.name);
+    var $div = $('#room-name-list');
+    $div.empty();
+    _.each(roominfo.members, function(member) {
+      $div.append($('<div class="member"></div>').attr('memberid', member).text(member));
+    });
+    $('#room #chat').empty();
+  };
+  client.addMember = function(member) {
+    $('#room-name-list').append($('<div class="member"></div>').attr('memberid', member).text(member));
+  };
+  client.removeMember = function(member) {
+    $('#room-name-list .member').each(function(){
+      if ($(this).attr('memberid') === member) {
+        $(this).remove();
+        return true;
+      }
+    });
+  };
+  client.chatmessage = function(chat) {
+    if (chat && chat.name && chat.message) {
+      var $div = $('#chat');
+      $div.append($('<div class="message"></div>').text(chat.name+': '+chat.message));
+    }
   };
 
   $(document).ready(function(){

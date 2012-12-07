@@ -36,7 +36,7 @@ RoomList.prototype.createRoom = function(options) {
   return true;
 };
 RoomList.prototype.getRoom = function(name) {
-  return _.find(this.rooms, function(room) { return room.name === name; });
+  return _.find(this.rooms, function(room) { return room.getName() === name; });
 }
 
 exports.Room = Room;
