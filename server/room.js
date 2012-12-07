@@ -12,6 +12,9 @@ Room.defualtOptions = {
   name: 'room'
 , autoVanish: true
 };
+Room.prototype.getName = function() {
+  return this.options.name;
+};
 
 function RoomList() {
   events.EventEmitter.call(this);
@@ -29,7 +32,7 @@ RoomList.prototype.createRoom = function(options) {
   if (room) {
     return false;
   }
-  this.rooms.add(new Room(options));
+  this.rooms.push(new Room(options));
   return true;
 };
 RoomList.prototype.getRoom = function(name) {

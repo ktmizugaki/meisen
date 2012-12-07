@@ -3,6 +3,7 @@
 <head>
 <meta charset='utf-8'>
 <title>meisen</title>
+<link rel="stylesheet" href="css/main.css" type="text/css">
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/jquery-1.8.3.min.js"></script>
 <script src="/js/underscore-min.js"></script>
@@ -10,36 +11,48 @@
 <script src="/js/client.js"></script>
 </head>
 <body>
-<article id="login">
-  <form id="form-login" action="none" method="get" onsubmit="return false;">
-    <input type="text" id="name-login">
-  </form>
-  <div id="button-login">[ログイン]</div>
-  <div id="state-login">未接続</div>
-</article>
-<article id="roomlist">
-  <h1>ロビー</h1>
-  <div id="button-newroom">[部屋作成]</div>
-  <div id="room">
-    <p>部屋一覧</p>
-    <div id="list-room">
+  <article id="login" class="fixed">
+    <h2 class="name">ログイン</h2>
+    <div class="content centerize">
+      <form id="form-login" action="none" method="get" onsubmit="return false;">
+        名前：<input type="text" id="name-login" size="24" maxlength="16">
+      </form>
+      <a href="" id="button-login">[ログイン]</a>
+      <div id="state-login">未接続</div>
     </div>
-  </div>
-</article>
-<article id="chat">
-  <form action="none" method="get" onsubmit="sendMsg('inputx'); return false;">
-    <input type="text" id="inputx">
-  </form>
-  <a href="#" onclick="sendMsg('inputx'); return false">送信</a>
-</article>
-
-
-
-
-
-
-
-
-
+  </article>
+  <article id="roomlist" class="fixed">
+    <h2 class="name">ロビー</h2>
+    <div class="content">
+      <div><a href="" id="button-login">[部屋作成]</a></div>
+      <div style="height: 1.5em;"></div>
+      <div>部屋一覧&nbsp;<a href="" id="button-roomlist">[再読込]</a></div>
+      <div id="list-room" class="vert-scroll">
+        <a href="" class="room" roomid="部屋1001">部屋1001</a>
+      </div>
+    </div>
+  </article>
+  <article id="room" class="relative on">
+    <div class="content">
+      <div id="room-left" class="border-box">
+        <h2 class="name">部屋:<span id="roomname">部屋1001</span></h2>
+      </div>
+      <div id="room-right" class="border-box">
+        <div id="room-right-top">
+          <div id="room-name-list" class="vert-scroll border-box">
+          </div>
+        </div>
+        <div id="room-right-bottom">
+          <div id="chat-box" class="border-box">
+            <div id="chat" class="vert-scroll">
+            </div>
+            <form id="form-chat" action="" method="get">
+              <input type="text" id="chat-input">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
 </body>
 </html>

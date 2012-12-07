@@ -1,0 +1,130 @@
+.on {
+  opacity: 1;
+}
+.off {
+  opacity: 0;
+  height: 0;
+}
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}
+article {
+  min-width: 640px; min-height: 360px;
+  border: 1px solid #ffcc99;
+}
+article.fixed {
+  position: relative;
+  width: 640px; height: 360px;
+}
+article.relative {
+  position: absolute;
+  position: relative;
+  left: 8px; top: 8px;
+  right: 8px; bottom: 8px;
+}
+h2.name {
+  position: absolute;
+  left: 64px; top: 16px;
+  background: #fff0d0;
+}
+div.content {
+  position: absolute;
+  left: 96px; top: 64px;
+  background: #ffd090;
+  background: #ffe0b0;
+  background: #fff8e0;
+}
+div.centerize {
+  vertical-align: middle;
+  text-align: center;
+}
+div.vert-scroll {
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+/************** login            **************/
+#login div.content {
+  left: 210px; top: 144px;
+}
+
+/************** roomlist         **************/
+#roomlist div.content {
+  left: 96px; top: 64px;
+  width: 448px; height: 260px;
+}
+#list-room {
+  height: 180px;
+  border: 2px solid #ffaa44;
+  padding: 8px;
+}
+#list-room .room {
+  display: inline-block;
+  margin: 4px;
+  white-space: nowrap;
+}
+
+/************** room             **************/
+#room div.content {
+  left: 0px; top: 0px;
+  width: 100%; height: 100%;
+  min-width: 640px; min-height: 360px;
+}
+#room .border-box {
+  position: absolute;
+  border: 1px solid #ffaa44;
+}
+#room .border-box .border-box {
+  position: absolute;
+  border: 1px solid #ff8811;
+  border-left: 0px; border-right: 0px;
+}
+#room #room-left {
+  left: 0px; top: 0px;
+  right: 160px; bottom: 0px;
+}
+#room #room-right {
+  right: 0px; top: 0px;
+  width: 158px; bottom: 0px;
+}
+
+/********** room-left      **********/
+#room h2.name {
+  left: 0; top: 0;
+}
+
+/********** room-right     **********/
+#room #room-right-top {
+  position: relative;
+  width: 158px; height: 35%;
+}
+#room-name-list {
+  width: 158px;
+  top: 0; bottom: 0px;
+}
+
+#room #room-right-bottom {
+  position: relative;
+  width: 158px; height: 65%;
+}
+#room #chat-box {
+  width: 158px;
+  top: 0; bottom: 0;
+}
+#chat-box #chat {
+  position: absolute;
+  width: 158px;
+  top: 0px; bottom: 1.2em;
+}
+#chat-box #form-chat {
+  position: absolute;
+  width: 158px; height: 1.2em;
+  bottom: 0px;
+  border-bottom: 1px solid #000;
+}
+#chat-box #chat-input {
+  position: absolute;
+  width: 158px; height: 1.2em;
+  bottom: 0px;
+  border: 0px; margin: 0px; padding: 0px;
+}

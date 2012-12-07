@@ -5,7 +5,7 @@ function Connection(client, name) {
   this.name = name;
   this.room = null;
   socket.on('connect', _.bind(this.onConnect, this));
-  socket.on('disconnect', _.bind(this.onDisonnect, this));
+  socket.on('disconnect', _.bind(this.onDisconnect, this));
   socket.on('ready', _.bind(this.onReady, this));
   socket.on('roomlist', _.bind(this.onRoomList, this));
   socket.on('chatmessage', _.bind(this.onChatMessage, this));
@@ -44,6 +44,9 @@ Connection.prototype.onChatMessage = function(data) {
 
 Connection.prototype.login = function(name) {
   this.socket.emit('login', { name: name });
+};
+Connection.prototype.disconnect = function(name) {
+  this.socket.disconnect();
 };
 Connection.prototype.getRoomList = function() {
   this.socket.emit('getroomlist');

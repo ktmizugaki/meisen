@@ -1,7 +1,5 @@
-var client = null;
-
-(function(){
-  client = {};
+var client = (function(){
+  var client = {};
   client.name = null;
   client.socket = null;
   client.socketOptions = {
@@ -11,11 +9,24 @@ var client = null;
   client.init = function() {
     console.log('init');
     $('#form-login').submit(function() {
-        client.connect();
-        return false;
+      client.connect();
+      return false;
     });
-    $('#button-login').click(function() {
-        client.connect();
+    $('#button-login').click(function(e) {
+      client.connect();
+      return false;
+    });
+    $('#button-newroom').click(function(e) {
+      client.prepareRoom();
+      return false;
+    });
+    $('#button-roomlist').click(function(e) {
+      client.loadRoomList();
+      return false;
+    });
+    $(document).on('click', '#list-room .room', function(){
+      console.log('click:'+ $(this).attr('roomid'));
+      return false;
     });
   };
   client.connect = function() {
@@ -25,7 +36,7 @@ var client = null;
       return false;
     }
     $('#state-login').html('<b>接続中</b>');
-    client.socket = new Client(client, $('#name-login').value);
+    client.socket = new Connection(client, $('#name-login')[0].value);
   };
   client.connected = function() {
     console.log('connected');
@@ -45,24 +56,31 @@ var client = null;
     console.log('login');
     if (client.socket !== null && client.name === null) {
       client.name = client.socket.name;
-      client.socket.login(clint.name);
+      client.socket.login(client.name);
+    }
+  };
+  client.loadRoomList = function() {
+    if (client.socket !== null) {
+      client.socket.getRoomList();
     }
   };
   client.prepareRoom = function() {
-    client.socket.genRoomId(function (data) {
-      console.log('genRoomId:'+data);
-      client.roomid = data;
-    });
+    if (client.socket !== null) {
+      client.socket.genRoomId(function (data) {
+        console.log('genRoomId:'+data);
+        client.roomid = data;
+      });
+    }
   };
 
   client.ready = function() {
-    client.socket.getRoomList();
+    client.loadRoomList();
   }
   client.roomlist = function(list) {
     var $div = $('#list-room');
     $div.empty();
     _.each(list, function(data) {
-      $div.append($("<div></div>").text(data));
+      $div.append($('<a href="" class="room"></a>').attr('roomid', data).text(data));
     });
   };
 
