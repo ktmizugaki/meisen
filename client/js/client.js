@@ -1,5 +1,6 @@
 var client = (function(){
   var client = {};
+  client.paper = null;
   client.name = null;
   client.socket = null;
   client.socketOptions = {
@@ -15,6 +16,8 @@ var client = (function(){
   client.init = function() {
     console.log('init');
     client.setActive('#login');
+    client.setActive('#room');
+    client.paper = new Raphael("canvas", 400, 300);
     $('#form-login').submit(function() {
       client.connect();
       return false;
@@ -46,12 +49,17 @@ var client = (function(){
       console.log('connection is active');
       return false;
     }
-    $('#state-login').html('<b>接続中</b>');
-    client.socket = new Connection(client, $('#name-login')[0].value);
+    $('#state-login').html('接続中……');
+    try {
+      client.socket = new Connection(client, $('#name-login')[0].value);
+    } catch(e) {
+      client.socket = null;
+      $('#state-login').html('<span class="error">接続できません</span>');
+    }
   };
   client.connected = function() {
     console.log('connected');
-    $('#state-login').html('<b>接続済</b>');
+    $('#state-login').html('接続済');
     client.login();
   };
   client.reset = function() {

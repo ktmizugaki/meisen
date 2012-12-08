@@ -4,6 +4,9 @@
 .off {
   display: none;
 }
+.error {
+  color: #f00;
+}
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
@@ -41,6 +44,9 @@ div.centerize {
 div.vert-scroll {
   overflow-x: hidden;
   overflow-y: scroll;
+}
+object.svg {
+  display: none;
 }
 
 /************** login            **************/
