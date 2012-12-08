@@ -1,5 +1,6 @@
 var client = (function(){
   var client = {};
+  var meisen = new Meisen();
   client.paper = null;
   client.name = null;
   client.socket = null;
@@ -17,7 +18,14 @@ var client = (function(){
     console.log('init');
     client.setActive('#login');
     client.setActive('#room');
-    client.paper = new Raphael("canvas", 400, 300);
+    $(document).on('click', 'a.button', function(e) {
+      e.preventDefault();
+      return false;
+    });
+    $(document).on('submit', 'form', function(e) {
+      e.preventDefault();
+      return false;
+    });
     $('#form-login').submit(function() {
       client.connect();
       return false;
@@ -113,7 +121,7 @@ var client = (function(){
     var $div = $('#list-room');
     $div.empty();
     _.each(list, function(room) {
-      $div.append($('<a href="" class="room"></a>').attr('roomid', room).text(room));
+      $div.append($('<a href="" class="room button"></a>').attr('roomid', room).text(room));
     });
   };
   client.enter = function(roominfo) {
@@ -146,6 +154,7 @@ var client = (function(){
 
   $(document).ready(function(){
     client.init();
+    meisen.init();
   });
 
   return client;

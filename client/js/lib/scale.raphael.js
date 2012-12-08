@@ -1,5 +1,7 @@
 /*
  * ScaleRaphael 0.8 by Zevan Rosser 2010 
+ * modified by teru 2012
+ *
  * For use with Raphael library : www.raphaeljs.com
  * Licensed under the MIT license.
  *
@@ -8,10 +10,12 @@
 (function(){
   window.ScaleRaphael = function(container, width, height){
     var wrapper = document.getElementById(container);
+    /*
     if (!wrapper.style.position) wrapper.style.position = "relative";
     wrapper.style.width = width + "px";
     wrapper.style.height = height + "px";
     wrapper.style.overflow = "hidden";
+    */
     
     var nestedWrapper;
       
@@ -22,6 +26,7 @@
       wrapper.innerHTML = "<div id='svggroup'><\/div>";
       nestedWrapper = document.getElementById("svggroup");
     }
+    nestedWrapper.style.position = "absolute";
  
     var paper = new Raphael(nestedWrapper, width, height);
     var vmlDiv;
@@ -77,14 +82,20 @@
         newHeight = h;
       }
       
+      /*
       wrapper.style.width = newWidth + "px";
       wrapper.style.height = newHeight + "px";
+      */
       paper.setSize(newWidth, newHeight);
       
       if (center){
+        /*
         wrapper.style.position = "absolute";
         wrapper.style.left = parseInt((w - newWidth) / 2) + "px";
         wrapper.style.top = parseInt((h - newHeight) / 2) + "px";
+        */
+        nestedWrapper.style.left = parseInt((w - newWidth) / 2) + "px";
+        nestedWrapper.style.top = parseInt((h - newHeight) / 2) + "px";
       }
     }
     

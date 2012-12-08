@@ -10,6 +10,7 @@
   <script type="text/javascript" src="js/lib/raphael.js"></script>
   <script type="text/javascript" src="js/lib/scale.raphael.js"></script>
   <script type="text/javascript" src="js/connection.js"></script>
+  <script type="text/javascript" src="js/meisen.js"></script>
   <script type="text/javascript" src="js/client.js"></script>
 </head>
 <body>
@@ -20,18 +21,18 @@
       <form id="form-login" action="none" method="get">
         名前：<input type="text" id="name-login" size="24" maxlength="16">
       </form>
-      <a href="" id="button-login">[ログイン]</a>
+      <a href="" id="button-login" class="button">[ログイン]</a>
       <div id="state-login">未接続</div>
     </div>
   </article>
   <article id="roomlist" class="fixed">
     <h2 class="name">ロビー</h2>
     <div class="content">
-      <div><a href="" id="button-newroom">[部屋作成]</a></div>
+      <div><a href="" id="button-newroom" class="button">[部屋作成]</a></div>
       <div style="height: 1.5em;"></div>
-      <div>部屋一覧&nbsp;<a href="" id="button-roomlist">[再読込]</a></div>
+      <div>部屋一覧&nbsp;<a href="" id="button-roomlist" class="button">[再読込]</a></div>
       <div id="list-room" class="vert-scroll">
-        <a href="" class="room" roomid="部屋1001">部屋1001</a>
+        <a href="" class="room button" roomid="部屋1001">部屋1001</a>
       </div>
     </div>
   </article>
@@ -39,23 +40,24 @@
     <div class="content">
       <div id="room-left" class="border-box">
         <h2 class="name">部屋:<span id="roomname">部屋1001</span></h2>
-        <div id="canvas" style="resize:both;overflow:scroll;width:100%;height:100%;"></div>
+        <div id="canvas"></div>
+        <div id="room-control" class="border-box">
+          <a href="" id="room-init" class="button">[初期化]</a>
+          &nbsp;
+          <a href="" id="room-aaa" class="button">[あああ]</a>
+        </div>
       </div>
       <div id="room-right" class="border-box">
-        <div id="room-right-top">
-          <div id="room-name-list" class="vert-scroll border-box">
+        <div id="room-name-list" class="vert-scroll border-box">
 <div class="member">Member000000000000000001</div>
-          </div>
         </div>
-        <div id="room-right-bottom">
-          <div id="chat-box" class="border-box">
-            <div id="chat" class="vert-scroll">
+        <div id="chat-box" class="border-box">
+          <div id="chat" class="vert-scroll">
 <div class="message">Message00000000000000001</div>
-            </div>
-            <form id="form-chat" action="" method="get">
-              <input type="text" id="chat-room">
-            </form>
           </div>
+          <form id="form-chat" action="" method="get">
+            <input type="text" id="chat-room">
+          </form>
         </div>
       </div>
     </div>
