@@ -22,26 +22,35 @@ MeisenUI.prototype.init = function() {
   var width = this.canvas.width(), height = this.canvas.height();
   this.paper = new ScaleRaphael('canvas', CANVAS_WIDTH, CANVAS_HEIGHT);
   var paper = this.paper;
-  this.paper.card = function(card, x, y) {
-    var name = CardNames[card];
-    var card = this.rect(x, y, CARD_WIDTH, CARD_HEIGHT);
-    card.attr({fill: "#fff"});
-    card.value = card;
-    card.click(function(){
-      this.animate(Raphael.animation(
-        { x: this.attr("x")+16, y: this.attr("y")+16 },
-        100));
-    });
-    //card.image = this.canvas.getElementById(name).cloneNode(false);
+  this.paper.card = function(cardid, x, y) {
+    var name = CardNames[cardid];
+    var card = this.set();
+    card.push(
+      card.rect = this.rect(0, 0, CARD_WIDTH, CARD_HEIGHT),
+      card.text = this.text(4, 16, CardNames.shortName(name))
+    );
+    card.rect.attr({fill: "#fff"});
+    card.text.attr({'font-size': 24, 'text-anchor': 'start' });
+    card.rect.set = card.text.set = card;
+    card.value = cardid;
+    card.move(x, y);
+    var onclick = function(){
+      this.set.move(this.set.x+16, this.set.y+16, 100);
+    };
+    card.text.click(onclick);
+    card.rect.click(onclick);
     if (card.image) {
+      card.image = this.canvas.getElementById(name).cloneNode(false);
       card.node.parentNode.appendChild(card.image);
-    } else {
-      card.text = this.text(x+4, y+16, CardNames.shortName(name));
-      card.text.attr('font-size', 24);
-      card.text.attr('text-anchor', 'start');
-      card.text.attr('width', CARD_WIDTH-8);
     }
     return card;
+  };
+  Raphael.st.move = function(x, y, ms) {
+    var dx = x - (this.x || 0), dy = y - (this.y || 0);
+    this.x = x; this.y = y;
+    this.forEach(function(el) {
+      el.animate(Raphael.animation({ x: el.attr('x')+dx, y: el.attr('y')+dy }, ms));
+    });
   };
   $(window).resize(_.bind(this.onResize, this));
   $('#game-init').click(function(){

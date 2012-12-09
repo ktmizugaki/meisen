@@ -156,8 +156,8 @@ var client = (function(){
   };
 
   $(document).ready(function(){
+    client.init();
     $('#svg-cards')[0].addEventListener('load', function(){
-      client.init();
       meisen.init();
     }, false);
   });
