@@ -1,5 +1,5 @@
 function Connection(client, name) {
-  var socket = io.connect('http://'+location.host+'/', client.socketOptions);
+  var socket = io.connect(location.protocol+'//'+location.host+'/', client.socketOptions);
   this.client = client;
   this.socket = socket;
   this.name = name;
@@ -12,55 +12,51 @@ function Connection(client, name) {
   socket.on('addmember', _.bind(this.onAddMember, this));
   socket.on('removemember', _.bind(this.onRemoveMember, this));
   socket.on('chatmessage', _.bind(this.onChatMessage, this));
+  socket.on('game', _.bind(this.onGame, this));
 }
 
 Connection.prototype.onConnect = function() {
-  console.log('socket.connected');
   if (this.client.socket === this) {
     this.client.connected();
   }
 };
 Connection.prototype.onDisconnect = function() {
-  console.log('socket.disconnected');
   if (this.client.socket === this) {
     this.client.reset();
   }
 };
 Connection.prototype.onReady = function() {
-  console.log('socket.ready');
   if (this.client.socket === this) {
     this.client.ready();
   }
 };
 Connection.prototype.onRoomList = function(data) {
-  console.log('socket.roomlist: ', data);
   if (this.client.socket === this && data && data.length) {
     this.client.roomlist(data);
   }
 };
 Connection.prototype.onEnter = function(data) {
-  console.log('socket.enter: ', data);
   if (this.client.socket === this && data) {
     this.client.enter(data);
   }
 };
 Connection.prototype.onAddMember = function(data) {
-  console.log('socket.addmember: ', data);
   if (this.client.socket === this && data) {
     this.client.addMember(data);
   }
 };
 Connection.prototype.onRemoveMember = function(data) {
-  console.log('socket.removemember: ', data);
   if (this.client.socket === this && data) {
     this.client.removeMember(data);
   }
 };
 Connection.prototype.onChatMessage = function(data) {
-  console.log('socket.chatmessage: ', data);
   if (this.client.socket === this && data) {
     this.client.chatmessage(data);
   }
+};
+Connection.prototype.onGame = function(data) {
+  this.client.gamedata(data);
 };
 
 Connection.prototype.login = function(name) {

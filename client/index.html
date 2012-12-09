@@ -10,11 +10,12 @@
   <script type="text/javascript" src="js/lib/raphael.js"></script>
   <script type="text/javascript" src="js/lib/scale.raphael.js"></script>
   <script type="text/javascript" src="js/connection.js"></script>
-  <script type="text/javascript" src="js/meisen.js"></script>
+  <script type="text/javascript" src="js/game.js"></script>
+  <script type="text/javascript" src="js/meisenui.js"></script>
   <script type="text/javascript" src="js/client.js"></script>
 </head>
 <body>
-  <object class="svg" data="img/svg-cards.svg" width="1" height="1" type="image/svg+xml"></object>
+  <object class="svg" id="svg-cards" data="img/svg-cards.svg" width="1" height="1" type="image/svg+xml"></object>
   <article id="login" class="fixed">
     <h2 class="name">ログイン</h2>
     <div class="content centerize">
@@ -42,9 +43,8 @@
         <h2 class="name">部屋:<span id="roomname">部屋1001</span></h2>
         <div id="canvas"></div>
         <div id="room-control" class="border-box">
-          <a href="" id="room-init" class="button">[初期化]</a>
-          &nbsp;
-          <a href="" id="room-aaa" class="button">[あああ]</a>
+          <a href="" id="game-init" class="button">[初期化]</a>
+          <a href="" id="game-setup" class="button">[配札]</a>
         </div>
       </div>
       <div id="room-right" class="border-box">

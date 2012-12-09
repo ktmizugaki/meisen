@@ -8,6 +8,7 @@ function startServer(port) {
   app.use(express.logger());
   app.use(express.favicon());
   app.use(express.static(path.dirname(__dirname) + '/client'));
+  app.use(express.static(path.dirname(__dirname) + '/shared'));
   return { app: app, server: server, io: io };
 }
 

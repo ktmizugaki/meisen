@@ -11,9 +11,9 @@ function Member(server, socket) {
   socket.on('genroomid', _.bind(this.onGenRoomId, this));
   socket.on('enterroom', _.bind(this.onEnterRoom, this));
   socket.on('chatmessage', _.bind(this.onChatMessage, this));
+  socket.on('game', _.bind(this.onGameEvent, this));
 }
 Member.prototype.onDisconnect = function() {
-  console.log('disconnect:', this.name);
   this.server.disconnection(this);
   if (this.room) {
     this.server.removeMember(this, this.room);
@@ -21,7 +21,6 @@ Member.prototype.onDisconnect = function() {
   }
 };
 Member.prototype.onLogin = function(data) {
-  console.log('login:', data);
   if (data && data.name) {
     this.name = data.name;
     this.socket.emit('ready');
@@ -30,7 +29,6 @@ Member.prototype.onLogin = function(data) {
   }
 };
 Member.prototype.onGetRoomList = function() {
-  console.log('getroomlist');
   if (!this.name) {
     this.socket.disconnect();
     return;
@@ -38,7 +36,6 @@ Member.prototype.onGetRoomList = function() {
   this.sendRoomList();
 };
 Member.prototype.onGenRoomId = function(data, fn) {
-  console.log('genroomid');
   if (!this.name) {
     this.socket.disconnect();
     return;
@@ -49,7 +46,6 @@ Member.prototype.onGenRoomId = function(data, fn) {
   fn(this.server.newRoomName());
 };
 Member.prototype.onEnterRoom = function(data) {
-  console.log('enterroom:'+data);
   if (!this.name || !data) {
     this.socket.disconnect();
     return;
@@ -80,7 +76,6 @@ Member.prototype.onEnterRoom = function(data) {
   this.server.addMember(this, this.room);
 };
 Member.prototype.onChatMessage = function(data) {
-  console.log('chatmessage:'+data);
   if (!this.name) {
     this.socket.disconnect();
     return;
@@ -95,6 +90,18 @@ Member.prototype.onChatMessage = function(data) {
   }
   this.server.chatMessage(this, data);
 };
+Member.prototype.onGameEvent = function(data) {
+  if (!this.room) {
+    this.socket.emit('error', {
+      errno: 'EROOM',
+      event: 'chatmessage',
+      data: data
+    });
+    return;
+  }
+  this.room.onGameData(data);
+};
+
 Member.prototype.sendRoomList = function() {
   var rooms = _.map(this.server.getRoomList(), function(room) { return room.getName(); });
   this.socket.emit('roomlist', rooms);
@@ -110,6 +117,9 @@ Member.prototype.sendChatMessage = function(member, data) {
     name: member.name,
     message: data
   });
+};
+Member.prototype.sendGameEvent = function(data) {
+  this.socket.emit('game', data);
 };
 
 module.exports = Member;

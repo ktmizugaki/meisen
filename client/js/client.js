@@ -1,11 +1,12 @@
 var client = (function(){
   var client = {};
-  var meisen = new Meisen();
+  var meisen = new MeisenUI();
   client.paper = null;
   client.name = null;
   client.socket = null;
   client.socketOptions = {
     'try multiple transports': false,
+    'force new connection': true,
     reconnect: false
   };
   client.setActive = function(id) {
@@ -15,9 +16,7 @@ var client = (function(){
     }
   };
   client.init = function() {
-    console.log('init');
     client.setActive('#login');
-    client.setActive('#room');
     $(document).on('click', 'a.button', function(e) {
       e.preventDefault();
       return false;
@@ -52,9 +51,7 @@ var client = (function(){
     });
   };
   client.connect = function() {
-    console.log('connect');
     if (client.socket !== null) {
-      console.log('connection is active');
       return false;
     }
     $('#state-login').html('接続中……');
@@ -66,12 +63,10 @@ var client = (function(){
     }
   };
   client.connected = function() {
-    console.log('connected');
     $('#state-login').html('接続済');
     client.login();
   };
   client.reset = function() {
-    console.log('reset');
     client.setActive('#login');
     if (client.socket !== null) {
         client.socket.disconnect();
@@ -81,7 +76,6 @@ var client = (function(){
     $('#state-login').html('未接続');
   };
   client.login = function() {
-    console.log('login');
     if (client.socket !== null && client.name === null) {
       client.name = client.socket.name;
       client.socket.login(client.name);
@@ -112,6 +106,11 @@ var client = (function(){
       $input.val("");
     }
   };
+  client.sendGameEvent = function(data) {
+    if (client.socket !== null) {
+      client.socket.socket.emit('game', data);
+    }
+  }
 
   client.ready = function() {
     client.setActive('#roomlist');
@@ -133,6 +132,7 @@ var client = (function(){
       $div.append($('<div class="member"></div>').attr('memberid', member).text(member));
     });
     $('#room #chat').empty();
+    meisen.reset();
   };
   client.addMember = function(member) {
     $('#room-name-list').append($('<div class="member"></div>').attr('memberid', member).text(member));
@@ -151,10 +151,15 @@ var client = (function(){
       $div.append($('<div class="message"></div>').text(chat.name+': '+chat.message));
     }
   };
+  client.gamedata = function(data) {
+    meisen.onData(data);
+  };
 
   $(document).ready(function(){
-    client.init();
-    meisen.init();
+    $('#svg-cards')[0].addEventListener('load', function(){
+      client.init();
+      meisen.init();
+    }, false);
   });
 
   return client;

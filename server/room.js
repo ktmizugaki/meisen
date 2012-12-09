@@ -1,11 +1,14 @@
 var events = require('events');
 var util = require('util');
 var _ = require('underscore');
+var Meisen = require('./meisen');
 
 function Room(options) {
   events.EventEmitter.call(this);
   this.options = {};
+  this.meisen = new Meisen(_.bind(this.gameCallback, this));
   _.defaults(this.options, options, Room.defualtOptions);
+  this.roomCallback = this.options.roomCallback;
 }
 util.inherits(Room, events.EventEmitter);
 Room.defualtOptions = {
@@ -15,11 +18,21 @@ Room.defualtOptions = {
 Room.prototype.getName = function() {
   return this.options.name;
 };
+Room.prototype.onGameData = function(data) {
+  if (!this.meisen) {
+    return false;
+  }
+  return this.meisen.onData(data);
+};
+Room.prototype.gameCallback = function(data, game) {
+  this.roomCallback(this, data);
+};
 
-function RoomList() {
+function RoomList(roomCallback) {
   events.EventEmitter.call(this);
   this.id = 1000;
   this.rooms = [];
+  this.roomCallback = roomCallback;
 }
 util.inherits(RoomList, events.EventEmitter);
 RoomList.prototype.newRoomName = function() {
@@ -32,6 +45,7 @@ RoomList.prototype.createRoom = function(options) {
   if (room) {
     return false;
   }
+  options.roomCallback = options.roomCallback || this.roomCallback;
   this.rooms.push(new Room(options));
   return true;
 };
