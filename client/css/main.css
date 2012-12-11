@@ -1,8 +1,19 @@
 .on {
+  opacity: 1;
   display: block;
 }
 .off {
+  opacity: 0;
+  height: 0;
   display: none;
+  background: #fff0d0;
+  background: #fff8e0;
+  background: #ffe0b0;
+  background: #ffd090;
+  border: 1px solid #ffaa44;
+  border: 1px solid #ff8811;
+  background: auto;
+  border: auto;
 }
 .error {
   color: #f00;
@@ -13,27 +24,22 @@ h1, h2, h3, h4, h5, h6 {
 article {
   position: absolute;
   min-width: 640px; min-height: 360px;
-  border: 1px solid #ffcc99;
+  border: 1px solid #000;
 }
 article.fixed {
-  position: absolute;
   width: 640px; height: 360px;
 }
 article.relative {
-  position: absolute;
-  position: absolute;
   left: 8px; top: 8px;
   right: 8px; bottom: 8px;
 }
 h2.name {
   position: absolute;
   left: 64px; top: 16px;
-  background: #fff0d0;
 }
 div.content {
   position: absolute;
   left: 96px; top: 64px;
-  background: #fff8e0;
 }
 div.centerize {
   vertical-align: middle;
@@ -59,7 +65,7 @@ object.svg {
 }
 #list-room {
   height: 180px;
-  border: 2px solid #ffaa44;
+  border: 2px solid #000;
   padding: 8px;
 }
 #list-room .room {
@@ -72,24 +78,25 @@ object.svg {
 #room div.content {
   left: 0px; top: 0px;
   width: 100%; height: 100%;
-  min-width: 640px; min-height: 360px;
 }
 #room .border-box {
   position: absolute;
-  border: 1px solid #ffaa44;
+  border: 1px solid #000;
 }
 #room .border-box > .border-box {
   position: absolute;
-  border: 1px solid #ff8811;
-  border-left: 0px; border-right: 0px;
+  border: 1px solid #000;
+  border-width: 1px 0px;
 }
 #room #room-left {
+  position: absolute;
   left: 0px; top: 0px;
   right: 160px; bottom: 0px;
 }
 #room #room-right {
-  right: 0px; top: 0px;
-  width: 158px; bottom: 0px;
+  position: absolute;
+  width: 158px; top: 0px;
+  right: 0px; bottom: 0px;
 }
 
 /********** room-left        **********/
@@ -100,12 +107,10 @@ object.svg {
   position: absolute;
   left: 0px; top: 2em;
   right: 0px; bottom: 1.4em;
-  background: #ffd090;
 }
 #room #room-control {
   position: absolute;
   width: 100%; height: 1.4em; bottom: 0;
-  background: #ffe0b0;
 }
 
 /********** room-right       **********/
@@ -113,8 +118,10 @@ object.svg {
 /****** room-name-list ********/
 #room #room-name-list {
   position: absolute;
-  width: 158px; height: 35%;
+  width: 158px;
   left: 0; top: 0;
+  right: 0; bottom: 65%;
+  border-top: 0;
 }
 #room #room-name-list .member {
   word-break: break-all;
@@ -123,13 +130,14 @@ object.svg {
 /****** chat-box      *****/
 #room #chat-box {
   position: absolute;
-  width: 158px; height: 65%;
+  width: 158px;
   left: 0; top: 35%;
+  right: 0; bottom: 0;
 }
 #room #chat {
   position: absolute;
   width: 158px;
-  top: 0px; bottom: 1.2em;
+  top: 0px; bottom: 1.4em;
 }
 #room .message {
   word-break: break-all;
@@ -137,13 +145,12 @@ object.svg {
 
 #room #form-chat {
   position: absolute;
-  width: 158px; height: 1.2em;
-  bottom: 0px;
-  border-bottom: 1px solid #000;
+  width: 156px; height: 1.4em;
+  bottom: 0;
 }
 #room #chat-room {
   position: absolute;
-  width: 158px; height: 1.2em;
-  bottom: 0px;
-  border: 0px; margin: 0px; padding: 0px;
+  left: 0px; top: 0px;
+  right: 2px; bottom: 4px;
+  margin: 0px; padding: 0px;
 }
