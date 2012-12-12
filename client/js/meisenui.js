@@ -3,48 +3,6 @@ var CANVAS_HEIGHT = 360;
 var CARD_WIDTH = 36;
 var CARD_HEIGHT = CARD_WIDTH*14/9;
 var svgCards = null;
-Raphael.fn.group = function() {
-  var el = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  this.canvas.appendChild(el);
-  var g = new this.raphael.el.constructor(el, this);
-  g.type = 'group';
-  g.x = g.y = 0;
-  delete g.attrs.x;
-  delete g.attrs.y;
-  Object.defineProperty(g.attrs, 'x', {
-    get: function() { return g.x; },
-    set: function(value) { g.move(value, g.y); }
-  });
-  Object.defineProperty(g.attrs, 'y', {
-    get: function() { return g.y; },
-    set: function(value) { g.move(g.x, value); }
-  });
-  g.push = Raphael.fn.group.push;
-  g.move = Raphael.fn.group.move;
-  g.click = Raphael.fn.group.click;
-  return g;
-};
-Raphael.fn.group.push = function(item) {
-  if (item.node) {
-    if (!this.children) this.children = [];
-    this.children.push(item);
-    item = item.node;
-  }
-  this.node.appendChild(item);
-};
-Raphael.fn.group.move = function(x, y) {
-  var dx = x - this.x, dy = y - this.y;
-  this.x = x; this.y = y;
-  this.translate(dx, dy);
-};
-Raphael.fn.group.click = function(fn) {
-  if (this.children) {
-    fn = _.bind(fn, this);
-    for (var i = 0, ii = this.children.length; i < ii; i++) {
-      this.children[i].click && this.children[i].click(fn);
-    }
-  }
-};
 Raphael.fn.card = function(cardid, x, y) {
   var name = CardNames[cardid];
   var card = this.group();
@@ -63,6 +21,37 @@ Raphael.fn.card = function(cardid, x, y) {
   card.move(x, y);
   return card;
 };
+Raphael.fn.player = function(playerid, x, y) {
+  var player = this.group();
+  player.move(x, y);
+  player.text = this.text(4, 14, 'p'+playerid);
+  player.push(player.text);
+  player.huki = null;
+  player.hand = [];
+  player.text.attr({'font-size': 24, 'text-anchor': 'start' });
+
+  player.addcard = Raphael.fn.player.addcard;
+  player.huku = Raphael.fn.player.huku;
+  return player;
+};
+Raphael.fn.player.addcard = function(card) {
+  var size = this.hand.length;
+  this.push(card);
+  this.hand.push(card);
+  card.attr('x', 48+size*CARD_WIDTH);
+  card.attr('y', 0);
+};
+Raphael.fn.player.huku = function(huki) {
+  if (this.huki !== null) {
+    this.huki.remove();
+    this.huki = null;
+  }
+  if (huki) {
+    this.huki = this.paper.text(16, 40, ''+huki)
+    this.huki.attr({'font-size': 20, 'text-anchor': 'start' });
+    this.push(this.huki);
+  }
+};
 
 function MeisenUI() {
   this.canvas = null;
@@ -72,11 +61,6 @@ function MeisenUI() {
 MeisenUI.prototype.onResize = function() {
   var width = this.canvas.width(), height = this.canvas.height();
   this.paper.changeSize(width, height, true, true);
-};
-MeisenUI.prototype.onMeisenEvent = function(event) {
-  if (!event || !event.name) {
-    return;
-  }
 };
 MeisenUI.prototype.init = function() {
   svgCards = $('svg', $('#svg-cards')[0].contentDocument)[0];
@@ -97,6 +81,15 @@ MeisenUI.prototype.init = function() {
   });
   $('#game-setup').click(function(){
     client.sendGameEvent({ action: 'setup' });
+  });
+  $('#game-huku').click(function(){
+    var huki = $('#input-huki').val();
+    if (huki.length >= 1) {
+      var data = { action: 'huku' };
+      data.suit = huki.substring(0, 1);
+      data.trick = huki.substring(1) || null;
+      client.sendGameEvent(data);
+    }
   });
   this.reset();
 };
@@ -125,21 +118,58 @@ MeisenUI.prototype.setupPlayer = function(data) {
   var rotation = -pos*Math.PI/2;
   var sin = Math.sin(rotation), cos = Math.cos(rotation);
   var x = 0, y = pos * CARD_HEIGHT;
-  var text = this.paper.text(x, y+CARD_HEIGHT/2, 'p'+data.id)
-  text.attr({'font-size': 24, 'text-anchor': 'start' });
-  this['player'+data.id] = text;
-  x += 48;
+  var player = this.paper.player(data.id, x, y);
+  this['player'+data.id] = player;
   for (var c in data.hand) {
-    var card = this.paper.card(data.hand[c], x, y);
+    var card = this.paper.card(data.hand[c], 0, 0);
+    player.addcard(card);
     card.click(function(){
       this.animate(Raphael.animation({ x: this.x+16, y: this.y+16 }, 100));
     });
-    x += CARD_WIDTH;
+  }
+};
+MeisenUI.prototype.setupAgari = function(data) {
+  var x = 0, y = 4 * CARD_HEIGHT;
+  var text = this.paper.text(x, y+CARD_HEIGHT/2, 'ア')
+  text.attr({'font-size': 24, 'text-anchor': 'start' });
+  x += 48;
+  var card = this.paper.card(data, x, y);
+  this.agari = {
+    text: text,
+    card: card
   }
 };
 MeisenUI.prototype.action_setup = function(data) {
   this.paper.clear();
   for (var p in data.players) {
     this.setupPlayer(data.players[p]);
+  }
+  this.setupAgari(data.agari);
+};
+MeisenUI.prototype.action_huku = function(data) {
+  for (var p in data.players) {
+    var data2 = data.players[p];
+    var player = this['player'+data2.id];
+    if (player) {
+      player.huku(data2.huki);
+    }
+  }
+};
+MeisenUI.prototype.action_agari = function(data) {
+  if (this.agari) {
+    this.agari.text.remove();
+    this.agari.card.remove();
+    this.agari = null;
+  }
+  for (var p in data.players) {
+    var data2 = data.players[p];
+    var player = this['player'+data2.id];
+    if (player) {
+      var card = this.paper.card(data.agari, 0, 0);
+      player.addcard(card);
+      card.click(function(){
+        this.animate(Raphael.animation({ x: this.x+16, y: this.y+16 }, 100));
+      });
+    }
   }
 };

@@ -101,7 +101,7 @@ var client = (function(){
   };
   client.sendChat = function(form) {
     if (client.socket !== null) {
-      $input = $('#chat-room', form);
+      var $input = $('#chat-room', form);
       client.socket.sendChat($input.val());
       $input.val("");
     }

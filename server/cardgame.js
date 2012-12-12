@@ -7,6 +7,12 @@ function CardGame() {
 CardGame.prototype.createDeck = function(selector, numJoker) {
   this.deck = new Deck(selector, numJoker);
 }
+CardGame.prototype.shuffleDeck = function() {
+  if (!this.deck) {
+    return;
+  }
+  this.deck.shuffle();
+}
 CardGame.prototype.createPlayers = function(numPlayer) {
   this.players.length = 0;
   for (var i = 0; i < numPlayer; i++) {

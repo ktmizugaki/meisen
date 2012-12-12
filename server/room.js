@@ -22,6 +22,11 @@ Room.prototype.onGameData = function(data) {
   if (!this.meisen) {
     return false;
   }
+  if (data.action == 'init') {
+    delete require.cache[require.resolve('./meisen')];
+    Meisen = require('./meisen');
+    this.meisen = new Meisen(_.bind(this.gameCallback, this));
+  }
   return this.meisen.onData(data);
 };
 Room.prototype.gameCallback = function(data, game) {
