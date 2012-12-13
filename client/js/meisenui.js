@@ -23,6 +23,7 @@ Raphael.fn.card = function(cardid, x, y) {
 };
 Raphael.fn.player = function(playerid, x, y) {
   var player = this.group();
+  player.__proto__ = Raphael.fn.player.proto;
   player.move(x, y);
   player.text = this.text(4, 14, 'p'+playerid);
   player.push(player.text);
@@ -30,27 +31,81 @@ Raphael.fn.player = function(playerid, x, y) {
   player.hand = [];
   player.text.attr({'font-size': 24, 'text-anchor': 'start' });
 
-  player.addcard = Raphael.fn.player.addcard;
-  player.huku = Raphael.fn.player.huku;
   return player;
 };
-Raphael.fn.player.addcard = function(card) {
-  var size = this.hand.length;
-  this.push(card);
-  this.hand.push(card);
-  card.attr('x', 48+size*CARD_WIDTH);
-  card.attr('y', 0);
+Raphael.fn.player.proto = {
+  addcard: function(card) {
+    var size = this.hand.length;
+    this.push(card);
+    this.hand.push(card);
+    card.move(48+size*CARD_WIDTH, 0);
+  },
+  removecard: function(cardid) {
+    var size = this.hand.length;
+    var card = null, cardindex = 0;
+    _.each(this.hand, function(val, index) {
+      if (card !== null) {
+        val.move(48+(index-1)*CARD_WIDTH, 0);
+      } else if (val.value == cardid) {
+        card = val;
+        cardindex = index;
+      }
+    });
+    if (card === null) {
+      return null;
+    }
+    this.exclude(card);
+    card.remove();
+    this.hand.splice(cardindex, 1);
+    return card;
+  },
+  huku: function(huki) {
+    if (this.huki !== null) {
+      this.huki.remove();
+      this.huki = null;
+    }
+    if (huki) {
+      this.huki = this.paper.text(16, 40, ''+huki)
+      this.huki.attr({'font-size': 20, 'text-anchor': 'start' });
+      this.push(this.huki);
+    }
+  },
+  __proto__: Raphael.gr
 };
-Raphael.fn.player.huku = function(huki) {
-  if (this.huki !== null) {
-    this.huki.remove();
-    this.huki = null;
-  }
-  if (huki) {
-    this.huki = this.paper.text(16, 40, ''+huki)
-    this.huki.attr({'font-size': 20, 'text-anchor': 'start' });
-    this.push(this.huki);
-  }
+Raphael.fn.table = function(x, y) {
+  var table = this.group();
+  table.move(x, y);
+  table.text = this.text(4, 14, '場');
+  table.players = [null, null, null, null];
+  table.push(table.text);
+  table.pos = 0;
+  table.setCard = function(playerid, cardid) {
+    if (!_.has(this.players, playerid)) {
+      return;
+    }
+    this.clearCard(playerid);
+    var pos = (playerid - this.watching + MEISEN_NUM_PLAYER) % MEISEN_NUM_PLAYER;
+    var card = this.paper.card(cardid, 0, 0);
+    card.move(this.pos * CARD_WIDTH / 8, pos * CARD_HEIGHT + 60);
+    this.players[playerid] = card;
+    this.pos++;
+  };
+  table.clearCard = function(playerid) {
+    var card = this.players[playerid];
+    if (card) {
+      this.exclude(card);
+      card.remove();
+      this.players[playerid] = null;
+    }
+  };
+  table.clearAll = function() {
+    _.each(this.players, function(val, index) {
+      this.clearCard(index);
+    }, this);
+    this.pos = 0;
+  };
+
+  return player;
 };
 
 function MeisenUI() {
@@ -107,25 +162,38 @@ MeisenUI.prototype.onData = function(data) {
   }
   this['action_'+data.action](data);
 };
+MeisenUI.prototype.onClickCard = function(card) {
+  console.log('click card:', card.value, '/', this.state);
+  if (this.state == 'negli') {
+    var data = { action: 'negru', card: card.value };
+    client.sendGameEvent(data);
+    return;
+  }
+  if (this.state == 'play') {
+    var data = { action: 'play', card: card.value };
+    client.sendGameEvent(data);
+    return;
+  }
+};
 MeisenUI.prototype.action_init = function(data) {
   this.reset();
   this.paper.canvas.appendChild(svgCards.children[0].cloneNode(true));
   this.paper.canvas.appendChild($('#2_heart', svgCards)[0].cloneNode(true));
+  this.state = 'init';
 };
 MeisenUI.prototype.setupPlayer = function(data) {
   var pos = (data.id - this.watching + MEISEN_NUM_PLAYER) % MEISEN_NUM_PLAYER;
   var center = { x: CANVAS_WIDTH/2, y: CANVAS_HEIGHT/2 };
   var rotation = -pos*Math.PI/2;
   var sin = Math.sin(rotation), cos = Math.cos(rotation);
-  var x = 0, y = pos * CARD_HEIGHT;
+  var x = 0, y = pos * CARD_HEIGHT + 60;
   var player = this.paper.player(data.id, x, y);
   this['player'+data.id] = player;
+  var meisen = this;
   for (var c in data.hand) {
     var card = this.paper.card(data.hand[c], 0, 0);
     player.addcard(card);
-    card.click(function(){
-      this.animate(Raphael.animation({ x: this.x+16, y: this.y+16 }, 100));
-    });
+    card.click(function(){ meisen.onClickCard(this); });
   }
 };
 MeisenUI.prototype.setupAgari = function(data) {
@@ -138,13 +206,16 @@ MeisenUI.prototype.setupAgari = function(data) {
     text: text,
     card: card
   }
+  card.click(function(){
+    this.animate(Raphael.animation({ x: this.x+16, y: this.y+16 }, 100));
+  });
 };
 MeisenUI.prototype.action_setup = function(data) {
-  this.paper.clear();
   for (var p in data.players) {
     this.setupPlayer(data.players[p]);
   }
   this.setupAgari(data.agari);
+  this.state = 'huki';
 };
 MeisenUI.prototype.action_huku = function(data) {
   for (var p in data.players) {
@@ -154,6 +225,7 @@ MeisenUI.prototype.action_huku = function(data) {
       player.huku(data2.huki);
     }
   }
+  this.state = 'huki';
 };
 MeisenUI.prototype.action_agari = function(data) {
   if (this.agari) {
@@ -167,9 +239,42 @@ MeisenUI.prototype.action_agari = function(data) {
     if (player) {
       var card = this.paper.card(data.agari, 0, 0);
       player.addcard(card);
-      card.click(function(){
-        this.animate(Raphael.animation({ x: this.x+16, y: this.y+16 }, 100));
-      });
     }
   }
+  this.state = 'negli';
+};
+MeisenUI.prototype.setupNegri = function(data) {
+  var x = 0, y = 4 * CARD_HEIGHT;
+  var text = this.paper.text(x, y+CARD_HEIGHT/2, 'ネ')
+  text.attr({'font-size': 24, 'text-anchor': 'start' });
+  x += 48;
+  var card = this.paper.card(data, x, y);
+  this.agari = {
+    text: text,
+    card: card
+  }
+};
+MeisenUI.prototype.action_negru = function(data) {
+  for (var p in data.players) {
+    var data2 = data.players[p];
+    var player = this['player'+data2.id];
+    if (player) {
+      var card = player.removecard(data.negli);
+      console.log(card? 'success':'failure');
+    }
+  }
+  this.setupNegri(data.negli);
+  this.state = 'play';
+};
+MeisenUI.prototype.action_play = function(data) {
+  for (var p in data.players) {
+    var data2 = data.players[p];
+    var player = this['player'+data2.id];
+    if (player) {
+      var card = player.removecard(data.negli);
+      console.log(card? 'success':'failure');
+    }
+  }
+  this.setupNegri(data.negli);
+  this.state = 'play';
 };

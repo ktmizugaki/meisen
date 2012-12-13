@@ -133,10 +133,10 @@ Meisen.prototype.action_huku = function(data) {
       this.action_init();
       return;
     }
-    this.state_neguri();
+    this.state_negli();
   }
 };
-Meisen.prototype.state_neguri = function() {
+Meisen.prototype.state_negli = function() {
   this.current = this.huki.id;
   var player = this.cardgame.players[this.current];
   var suit = Meisen.SUIT_ORDER[this.huki.suit];
@@ -147,11 +147,83 @@ Meisen.prototype.state_neguri = function() {
   player.hand.push(agari);
   var data = {
     action: 'agari', target: 'all',
-    id: this.id,
     agari: Meisen.cardToData(agari),
     players: [Meisen.playerToData(player)]
   };
   this.callback(data, this, this.cb_data);
+};
+Meisen.prototype.action_negru = function(data) {
+  if (this.state !== Meisen.State.NEGLI) {
+    return;
+  }
+  data.card = +data.card;
+  if (_.isNaN(data.card)) {
+    return;
+  }
+  var player = this.cardgame.players[this.current];
+  var negli = null;
+  _.each(player.hand, function(card, index){
+    if (card.id === data.card) {
+      negli = card;
+      player.hand.splice(index, 1);
+      return true;
+    }
+  });
+  if (negli === null) {
+    console.log('the card is not in hand:', data.card);
+    return;
+  }
+  this.state = Meisen.State.PLAY;
+  this.start = this.current;
+  var data = {
+    action: 'negru', target: 'all',
+    current: this.current,
+    negli: Meisen.cardToData(negli),
+    players: [Meisen.playerToData(player)]
+  };
+  this.callback(data, this, this.cb_data);
+};
+Meisen.prototype.action_play = function(data) {
+  if (this.state !== Meisen.State.PLAY) {
+    return;
+  }
+  data.card = +data.card;
+  if (_.isNaN(data.card)) {
+    return;
+  }
+  var player = this.cardgame.players[this.current];
+  var playedcard = null;
+  _.each(player.hand, function(card, index){
+    if (card.id === data.card) {
+      playedcard = card;
+      player.hand.splice(index, 1);
+      return true;
+    }
+  });
+  if (playedcard === null) {
+    console.log('the card is not in hand:', data.card);
+    return;
+  }
+  this.state = Meisen.State.PLAY;
+  this.current = (this.current+1) % Meisen.NUM_PLAYER;
+  this.table[player.id] = playedcard;
+  var data = {
+    action: 'play', target: 'all',
+    current: this.current,
+    player: player.id,
+    card: Meisen.cardToData(playedcard),
+  };
+  this.callback(data, this, this.cb_data);
+  if (this.current == this.start) {
+    this.start = this.current;
+    this.table = [];
+    if (!player.hand.length) {
+      this.state = Meisen.State.END;
+      this.callback({ action: 'end' }, this, this.cb_data);
+    } else {
+      this.callback({ action: 'endtrick' }, this, this.cb_data);
+    }
+  }
 };
 
 function State(name, value) {
@@ -162,7 +234,7 @@ Meisen.State = State;
 State.prototype.toString = function() {
   return 'State.'+this.name;
 };
-_.each('INIT,READY,HUKI,NEGLI'.split(','), function(val, index) {
+_.each('INIT,READY,HUKI,NEGLI,PLAY,END'.split(','), function(val, index) {
   State[val] = new State(val, index);
 });
 

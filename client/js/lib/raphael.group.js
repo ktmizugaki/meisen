@@ -14,29 +14,41 @@ Raphael.fn.group = function() {
     get: function() { return g.y; },
     set: function(value) { g.move(g.x, value); }
   });
-  g.push = Raphael.fn.group.push;
-  g.move = Raphael.fn.group.move;
-  g.click = Raphael.fn.group.click;
+  g.__proto__ = this.raphael.gr;
   return g;
 };
-Raphael.fn.group.push = function(item) {
-  if (item.node) {
-    if (!this.children) this.children = [];
-    this.children.push(item);
-    item = item.node;
-  }
-  this.node.appendChild(item);
-};
-Raphael.fn.group.move = function(x, y) {
-  var dx = x - this.x, dy = y - this.y;
-  this.x = x; this.y = y;
-  this.translate(dx, dy);
-};
-Raphael.fn.group.click = function(fn) {
-  if (this.children) {
-    fn = _.bind(fn, this);
-    for (var i = 0, ii = this.children.length; i < ii; i++) {
-      this.children[i].click && this.children[i].click(fn);
+Raphael.gr = {
+  push: function(item) {
+    if (item.node) {
+      if (!this.children) this.children = [];
+      this.children.push(item);
+      item = item.node;
     }
-  }
+    this.node.appendChild(item);
+  },
+  exclude: function(item) {
+    if (this.chidren) {
+      for (var i = 0, ii = this.children.length; i < ii; i++) {
+        if (this.children[i] === item) {
+          this.children.splice(i, 1);
+          return true;
+        }
+      }
+    }
+    return null;
+  },
+  move: function(x, y) {
+    var dx = x - this.x, dy = y - this.y;
+    this.x = x; this.y = y;
+    this.translate(dx, dy);
+  },
+  click: function(fn) {
+    if (this.children) {
+      fn = _.bind(fn, this);
+      for (var i = 0, ii = this.children.length; i < ii; i++) {
+        this.children[i].click && this.children[i].click(fn);
+      }
+    }
+  },
+  __proto__: Raphael.el,
 };
