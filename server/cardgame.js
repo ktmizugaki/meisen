@@ -1,9 +1,15 @@
+var events = require('events');
+var util = require('util');
 var _ = require('underscore');
 
 function CardGame() {
+  events.EventEmitter.call(this);
   this.deck = null;
   this.players = [];
+  this.table = [];
+  this.current = 0;
 }
+util.inherits(CardGame, events.EventEmitter);
 CardGame.prototype.createDeck = function(selector, numJoker) {
   this.deck = new Deck(selector, numJoker);
 }
@@ -13,18 +19,57 @@ CardGame.prototype.shuffleDeck = function() {
   }
   this.deck.shuffle();
 }
-CardGame.prototype.createPlayers = function(numPlayer) {
+CardGame.prototype.createPlayers = function(numPlayer, playerClass) {
+  if (!playerClass) playerClass = Player;
   this.players.length = 0;
   for (var i = 0; i < numPlayer; i++) {
-    this.players[i] = new Player(i);
+    this.players[i] = new playerClass(i);
   }
 }
+/* get current player */
+CardGame.prototype.currentPlayer = function() {
+  if (this.current >= this.players.length) {
+    return null;
+  }
+  return this.players[this.current];
+};
+/* change current player to next player */
+CardGame.prototype.setPlayer = function(current) {
+  if (current < 0 || current >= this.players.length) {
+    throw new Error('Index is out of bounds:', current);
+  }
+  this.current = 0;
+  return this.current;
+};
+/* change current player to next player */
+CardGame.prototype.playerNext = function() {
+  if (this.players.length) {
+    this.current = (this.current+1) % this.players.length;
+  }
+  return this.current;
+};
+/* change current player to next player */
+CardGame.prototype.playerPrevious = function() {
+  if (this.players.length) {
+    this.current = (this.current+this.players.length-1) % this.players.length;
+  }
+  return this.current;
+};
+
+/* change current player to next player */
+CardGame.prototype.dealCard = function() {
+  var player = this.currentPlayer();
+  var card = this.deck.get();
+  player.hand[player.hand.length] = card;
+  return card;
+};
 
 function Card(id, suit, rank, name) {
   this.id = id;
-  this.suit = suit;
+  this.suitId = suit;
   this.rank = rank;
   this.name = name;
+  this.suitStr = Card.SUIT[suit-1] || '';
 }
 CardGame.Card = Card;
 Card.SUIT = ['c','d','h','s'];
@@ -43,14 +88,14 @@ _.each('black_joker,red_joker'.split(','), function(other, val) {
 });
 Card.BACK = new Card(-1, 0, 0, 'back');
 Card.prototype.toString = function() {
-  if (this.suit == 0) return 'bc';
-  if (this.suit == 5) return 'jk';
-  return Card.SUIT[this.suit-1]+Card.RANK[this.rank-1];
+  if (this.suitId == 0) return 'bc';
+  if (this.suitId == 5) return 'jk';
+  return Card.SUIT[this.suitId-1]+Card.RANK[this.rank-1];
 };
 
 function Deck(selector, numJoker) {
   this.cards = _.select(Card.CARDS, function(card) {
-    if (card.suit <= 4) return selector(card);
+    if (card.suitId <= 4) return selector(card);
     return card.rank <= numJoker;
   });
   this.pos = 0;

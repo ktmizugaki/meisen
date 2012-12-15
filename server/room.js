@@ -18,6 +18,9 @@ Room.defualtOptions = {
 Room.prototype.getName = function() {
   return this.options.name;
 };
+Room.prototype.getGameData = function() {
+  return Meisen.meisenToData(this.meisen, Meisen.Target.all);
+};
 Room.prototype.onGameData = function(data) {
   if (!this.meisen) {
     return false;

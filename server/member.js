@@ -74,6 +74,7 @@ Member.prototype.onEnterRoom = function(data) {
     members: _.map(this.server.getMemberList(), function(member) { return member.name; })
   });
   this.server.addMember(this, this.room);
+  this.sendGameEvent(this.room.getGameData());
 };
 Member.prototype.onChatMessage = function(data) {
   if (!this.name) {

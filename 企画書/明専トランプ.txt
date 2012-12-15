@@ -59,7 +59,7 @@
 
 3.5 カードの強さ
 
-カードの強さは、強い順から、Jokerが最強で、切り札のスートのA,K,Q,正J,裏J,10,9,
+カードの強さは、強い順から、Jokerが最強で、切り札のスートの正J,裏J,A,K,Q,10,9,
 ...,5、台札と同じスートのA,K,Q,J,10,9,...,5、それ以外となります。
 切り札と同じ色で別のスートのJを裏ジャックと呼びます。また、裏ジャックは切り札と
 同じスートとして扱われます。切り札がハートの場合、ダイヤのJが裏ジャックになり、
@@ -121,5 +121,5 @@ X-5+(Y-X)×0.5 点です。
 4. 参考文献
 
 [1] 明専トランプのルール, http://kurolab.cntl.kyutech.ac.jp/~kuro/meitr1.html
-[2] 明専トランプ, http://fujii-project.txt-nifty.com/meitora/2011/09/post-698b.html
+[2] 明専トランプ入門, http://fujii-project.txt-nifty.com/meitora/2011/09/post-698b.html
 
