@@ -15,7 +15,7 @@ function Meisen(callback, cb_data) {
 }
 util.inherits(Meisen, CardGame);
 Meisen.CARD_SELECTOR = function(card) {
-  return card.rank >= 4;
+  return card.rank == 1 || card.rank >= 5;
 };
 Meisen.NUM_JOKER = 1;
 Meisen.NUM_PLAYER = 4;
@@ -94,6 +94,7 @@ Meisen.prototype.action_init = function() {
   this.invokeCallback(data);
 };
 Meisen.prototype.action_setup = function() {
+  console.log('setup');
   if (this.state !== Meisen.State.INIT) {
     return;
   }
@@ -178,7 +179,7 @@ Meisen.prototype.state_huki = function() {
     meisen.state = Meisen.State.HUKI;
     var data = {
       action: 'huki', target: 'all',
-      current: this.current,
+      current: meisen.current,
     };
     meisen.invokeCallback(data);
   });

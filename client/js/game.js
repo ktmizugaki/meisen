@@ -13,7 +13,11 @@ CardNames[-1] = 'back';
 CardNames.shortName = function(name) {
   if (name == 'back') return 'bc';
   if (name.indexOf('joker') > -1) return 'jk';
-  return name.charAt(name.indexOf('_')+1)+ name.charAt(0);
+  var index = name.indexOf('_');
+  var suit = name.charAt(index+1);
+  var rank = name.substring(0, index>2?1:index).toUpperCase();
+  if (rank == '1') rank = 'A';
+  return suit+rank;
 };
 
 function GameState(name, value) {

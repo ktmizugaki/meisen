@@ -26,20 +26,28 @@ Raphael._availableAttrs['font-size'] = '22px';
 Raphael.fn.card = function(cardid, x, y) {
   var name = CardNames[cardid];
   var card = this.group();
+  //card.image = cloneSvgCard(name);
+  if (card.image) {
+    card.node.appendChild(card.image);
+  }
   card.rect = this.rect(0, 0, CARD_WIDTH, CARD_HEIGHT),
-  card.text = this.text(4, 16, CardNames.shortName(name))
-  card.image = cloneSvgCard(name);
-  card.node.appendChild(card.image);
-  card.push(card.rect);
-  card.push(card.text);
-
   card.rect.attr({fill: "#fff"});
+  card.push(card.rect);
+  if (cardid != -1) {
+    card.text = this.text(4, 16, CardNames.shortName(name))
+    card.push(card.text);
+    card.text.attr({'text-anchor': 'start' });
+    card.text.attr({'x': 4, 'y': 16 });
+  } else {
+    card.rect.attr({fill: "#9af"});
+  }
+
   if (card.image) {
     card.rect.attr({'opacity': 0});
-    card.text.attr({'opacity': 0});
+    if (card.text) {
+      card.text.attr({'opacity': 0});
+    }
   }
-  card.text.attr({'text-anchor': 'start' });
-  card.text.attr({'x': 4, 'y': 16 });
 
   card.value = cardid;
   card.move(x, y);
@@ -102,9 +110,10 @@ Raphael.fn.player.proto = {
   highlight: function(on) {
     if (on) {
       if (!this._highlight) {
-        this._highlight = this.paper.rect(0, 0, PPANEL_WIDTH, PPANEL_HEIGHT);
-        this._highlight.attr('stroke', '#00f');
+        this._highlight = this.paper.rect(0, 0, this.hand.length*CARD_WIDTH, PPANEL_HEIGHT);
+        this._highlight.attr({'stroke': '#00f', 'stroke-width':'2px', 'fill':'#ccf'});
         this.push(this._highlight);
+        this._highlight.toBack();
       }
     } else {
       if (this._highlight) {
@@ -121,17 +130,16 @@ Raphael.fn.table = function(x, y) {
   table.players = [null, null, null, null];
   table.pos = 0;
   table.setCard = function(playerid, cardid, watching) {
-    console.log('setCard: player id:'+playerid+' cardid:'+cardid);
     if (!_.has(this.players, playerid)) {
       return;
     }
     this.clearCard(playerid);
     var cardpos = (playerid - watching + MEISEN_NUM_PLAYER) % MEISEN_NUM_PLAYER;
     var pos = [
-      {x:-CARD_WIDTH/2,   y: CARD_HEIGHT/2},
-      {x: CARD_WIDTH/2,   y:-CARD_HEIGHT/4},
-      {x:-CARD_WIDTH/2,   y:-CARD_HEIGHT*3/2},
-      {x:-CARD_WIDTH*3/2, y:-CARD_HEIGHT*5/4},
+      {x:-CARD_WIDTH/2,   y: CARD_HEIGHT/4  },
+      {x: CARD_WIDTH/2,   y:-CARD_HEIGHT/2  },
+      {x:-CARD_WIDTH/2,   y:-CARD_HEIGHT*5/4},
+      {x:-CARD_WIDTH*3/2, y:-CARD_HEIGHT/2  },
     ];
     var card = this.paper.card(cardid, pos[cardpos].x, pos[cardpos].y);
     this.push(card);
@@ -241,10 +249,10 @@ MeisenUI.prototype.onClickHuki = function(huki) {
   }
 };
 var MEISEN_PLAYER_POS = [
-  { x: (CANVAS_WIDTH-PPANEL_WIDTH)/2, y: CANVAS_HEIGHT-PPANEL_HEIGHT-1, s: 1, r: 0 },
-  { x: CANVAS_WIDTH-PPANEL_HEIGHT*0.6-1, y: PPANEL_WIDTH*0.6+8, s: 0.6, r: 90 },
-  { x: (CANVAS_WIDTH+PPANEL_WIDTH*0.6)/2, y: PPANEL_HEIGHT*0.6+1, s: 0.6, r: 180 },
-  { x: PPANEL_HEIGHT*0.6+1, y: 8, s: 0.6, r: 270 },
+  { x: (CANVAS_WIDTH-PPANEL_WIDTH)/2, y: CANVAS_HEIGHT-PPANEL_HEIGHT-2, s: 1, r: 0 },
+  { x: CANVAS_WIDTH-PPANEL_HEIGHT*0.6-2, y: PPANEL_WIDTH*0.56+8, s: 0.56, r: 90 },
+  { x: (CANVAS_WIDTH+PPANEL_WIDTH*0.6)/2, y: PPANEL_HEIGHT*0.6+2, s: 0.6, r: 180 },
+  { x: PPANEL_HEIGHT*0.56+2, y: 8, s: 0.56, r: 270 },
 ];
 MeisenUI.prototype.setCurrentPlayer = function(playerid) {
   var prev = this.current;
@@ -272,7 +280,11 @@ MeisenUI.prototype.setupPlayer = function(data) {
   this['player'+data.id] = player;
   var meisen = this;
   var func = function(){ meisen.onClickCard(this); };
-  data.hand.sort(function(a,b){return a-b;});
+  data.hand.sort(function(a,b) {
+    if (a >= 52 || (a%13) == 0) a += 13;
+    if (b >= 52 || (b%13) == 0) b += 13;
+    return a-b;
+  });
   _.each(data.hand, function(value) {
     var card = this.paper.card(value, 0, 0);
     player.addcard(card);
@@ -284,19 +296,19 @@ MeisenUI.prototype.setupPlayer = function(data) {
 };
 MeisenUI.prototype.setupAgari = function(data) {
   if (data == null) data = -1;
-  var x = CANVAS_WIDTH/2-CARD_WIDTH/2, y = CANVAS_HEIGHT/2-CARD_HEIGHT/2;
+  var x = (CANVAS_WIDTH-CARD_WIDTH)/2+120, y = CANVAS_HEIGHT/2-CARD_HEIGHT;
   var card = this.paper.card(data, x, y);
   this.agari = card;
 };
-MeisenUI.prototype.setupNegri = function(data) {
-  var x = CANVAS_WIDTH-CARD_WIDTH-12, y = CANVAS_HEIGHT-CARD_HEIGHT-12;
+MeisenUI.prototype.setupNegli = function(data) {
+  var x = CANVAS_WIDTH-CARD_WIDTH-8, y = CANVAS_HEIGHT-CARD_HEIGHT-8;
   var card = this.paper.card(data, x, y);
   this.card = card;
 };
 MeisenUI.prototype.setupHukiList = function(data) {
   var w = 44, h = 28;
   this.hukiPanel = this.paper.group();
-  this.hukiPanel.move((CANVAS_WIDTH-w*6)/2, (CANVAS_HEIGHT-h*6)/2 - 8);
+  this.hukiPanel.move((CANVAS_WIDTH-w*6)/2 - CARD_WIDTH, (CANVAS_HEIGHT-h*6)/2 - 8);
   var meisen = this;
   var func = function(){ meisen.onClickHuki(this); };
   var g = this.paper.group();
@@ -376,6 +388,10 @@ MeisenUI.prototype.action_agari = function(data) {
     this.agari.remove();
     this.agari = null;
   }
+  if (this.hukiPanel) {
+    this.hukiPanel.remove();
+    this.hukiPanel = null;
+  }
   var meisen = this;
   var func = function(){ meisen.onClickCard(this); };
   for (var p in data.players) {
@@ -401,7 +417,7 @@ MeisenUI.prototype.action_negru = function(data) {
       }
     }
   }
-  this.setupNegri(data.negli);
+  this.setupNegli(data.negli);
   this.state = 'play';
   this.setupTable(null);
 };
