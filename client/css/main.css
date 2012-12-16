@@ -25,6 +25,7 @@ article {
   position: absolute;
   min-width: 640px; min-height: 360px;
   border: 1px solid #000;
+  background: #fff;
 }
 article.fixed {
   width: 640px; height: 360px;
@@ -150,7 +151,8 @@ object.svg {
 }
 #room #chat-room {
   position: absolute;
-  left: 0px; top: 0px;
-  right: 2px; bottom: 4px;
+  width: 153px; height: 1.1em;
+  left: 1px; top: 0px;
+  right: 0px; bottom: 0px;
   margin: 0px; padding: 0px;
 }

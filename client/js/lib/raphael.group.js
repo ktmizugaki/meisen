@@ -52,3 +52,7 @@ Raphael.gr = {
   },
   __proto__: Raphael.el,
 };
+Raphael._getPath['group'] = function(el) {
+  var bbox = el.node.getBBox();
+  return Raphael._rectPath(bbox.x, bbox.y, bbox.width, bbox.height);
+};
