@@ -27,7 +27,7 @@ function GameState(name, value) {
 GameState.prototype.toString = function() {
   return 'GameState.'+this.name;
 };
-_.each('INIT,READY'.split(','), function(val, index) {
+_.each('INIT,READY,HUKI,NEGLI,PLAY,ENDTRICK,RESULT,END'.split(','), function(val, index) {
   GameState[val] = new GameState(val, index);
 });
 
