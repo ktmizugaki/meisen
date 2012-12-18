@@ -7,6 +7,10 @@ var IMAGE_CARD_WIDTH = 167.575, IMAGE_CARD_HEIGHT = 243.137;
 var CARD_SCALE = Math.min(CARD_WIDTH/IMAGE_CARD_WIDTH, CARD_HEIGHT/IMAGE_CARD_HEIGHT);
 var CARD_SCALE_TEXT = 'scale('+CARD_SCALE+')';
 var svgCards = null;
+var CardColor = {
+  s: '#000000', c: '#000000', d: '#E6180A', h: '#E6180A',
+  n: '#666666', j: '#000000',
+};
 function cloneSvgCard(name, id) {
   var image = $('#'+name, svgCards)[0].cloneNode(true);
   var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -34,9 +38,11 @@ Raphael.fn.card = function(cardid, x, y) {
   card.rect.attr({fill: "#fff"});
   card.push(card.rect);
   if (cardid != -1) {
-    card.text = this.text(4, 16, CardNames.shortName(name))
+    var shortname = CardNames.shortName(name);
+    card.text = this.text(4, 16, shortname);
     card.push(card.text);
-    card.text.attr({'text-anchor': 'start' });
+    var color = CardColor[shortname.charAt(0)];
+    card.text.attr({'text-anchor': 'start', fill: color});
     card.text.attr({'x': 4, 'y': 16 });
   } else {
     card.rect.attr({fill: "#9af"});
@@ -131,8 +137,10 @@ Raphael.fn.table = function(x, y) {
   table.pos = 0;
   table.setCard = function(playerid, cardid, watching) {
     if (!_.has(this.players, playerid)) {
+      console.log('invalid player id:', playerid, this.players[playerid]);
       return;
     }
+    console.log('player id:', playerid, cardid, watching);
     this.clearCard(playerid);
     var cardpos = (playerid - watching + MEISEN_NUM_PLAYER) % MEISEN_NUM_PLAYER;
     var pos = [
@@ -141,6 +149,7 @@ Raphael.fn.table = function(x, y) {
       {x:-CARD_WIDTH/2,   y:-CARD_HEIGHT*5/4},
       {x:-CARD_WIDTH*3/2, y:-CARD_HEIGHT/2  },
     ];
+    console.log('pos:', pos[cardpos]);
     var card = this.paper.card(cardid, pos[cardpos].x, pos[cardpos].y);
     this.push(card);
     this.players[playerid] = card;
@@ -169,6 +178,7 @@ function MeisenUI() {
   this.paper = null;
   this.state = null;
   this.hukiPanel = null;
+  this.table = null;
 }
 MeisenUI.prototype.onResize = function() {
   var width = this.canvas.width(), height = this.canvas.height();
@@ -216,6 +226,12 @@ MeisenUI.prototype.init = function() {
 MeisenUI.prototype.reset = function() {
   this.watching = 0;
   this.state = 'init';
+  this.hukiPanel = null;
+  this.table = null;
+  this['player0'] = null;
+  this['player1'] = null;
+  this['player2'] = null;
+  this['player3'] = null;
   this.paper.clear();
   this.paper.canvas.appendChild(svgCards.children[0].cloneNode(true));
   this.onResize();
@@ -319,11 +335,11 @@ MeisenUI.prototype.setupHukiList = function(data) {
   g.push(g.rect);
   g.push(g.text);
   g.rect.attr({fill:'#fff', opacity:0});
-  g.text.attr({stroke:'#00cc00', fill:'#00cc00'});
+  g.text.attr({fill:'#00cc00'});
   g.click(func);
   this.hukiPanel.push(g);
   _.each(['spade', 'club', 'diamond', 'heart', 'notr'], function(suit, y) {
-    var color = y<2?'#000000':y<4?'#E6180A':'#666666';
+    var color = CardColor[suit.charAt(0)];
     _.each(['6', '7', '8', '9', '10', '11'], function(trick, x) {
       var g = this.paper.group();
       g.move(x*w, (y+1)*h);
@@ -335,13 +351,14 @@ MeisenUI.prototype.setupHukiList = function(data) {
       g.push(g.rect);
       g.push(g.text);
       g.rect.attr({fill:'#fff', opacity:0});
-      g.text.attr({stroke:color, fill:color});
+      g.text.attr({fill:color});
       g.click(func);
       this.hukiPanel.push(g);
     }, this);
   }, this);
 };
 MeisenUI.prototype.setupTable = function(data) {
+  console.log('setupTable: ', this.table);
   if (!this.table) {
     this.table = this.paper.table(CANVAS_WIDTH/2, CANVAS_HEIGHT/2);
   }
@@ -418,8 +435,8 @@ MeisenUI.prototype.action_negru = function(data) {
     }
   }
   this.setupNegli(data.negli);
-  this.state = 'play';
   this.setupTable(null);
+  this.state = 'play';
 };
 MeisenUI.prototype.action_trick = function(data) {
   this.table.clearAll();

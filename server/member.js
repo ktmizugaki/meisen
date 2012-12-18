@@ -5,6 +5,7 @@ function Member(server, socket) {
   this.socket = socket;
   this.room = null;
   this.name = null;
+  this._listeners = [];
   socket.on('disconnect', _.bind(this.onDisconnect, this));
   socket.on('login', _.bind(this.onLogin, this));
   socket.on('getroomlist', _.bind(this.onGetRoomList, this));
@@ -13,109 +14,124 @@ function Member(server, socket) {
   socket.on('chatmessage', _.bind(this.onChatMessage, this));
   socket.on('game', _.bind(this.onGameEvent, this));
 }
-Member.prototype.onDisconnect = function() {
-  this.server.disconnection(this);
-  if (this.room) {
-    this.server.removeMember(this, this.room);
-    this.room = null;
+Member.prototype.serialize = function() {
+  return this.name;
+};
+Member.prototype.disconnect = function() {
+  if (this.socket) {
+    this.socket.disconnect();
+    this.socket = null;
   }
 };
-Member.prototype.onLogin = function(data) {
-  if (data && data.name) {
-    this.name = data.name;
-    this.socket.emit('ready');
-  } else {
-    this.socket.disconnect();
+Member.prototype.validate = function(event) {
+  if (event === 'onDisconnect') {
+    return true;
   }
+  if (this.disconnected) {
+    return false;
+  }
+  if (this.name === null) {
+    this.disconnect();
+    return false;
+  }
+  return true;
+};
+Member.prototype.invokeListener = function(event, args) {
+  if (!this.validate(event)) {
+    return false;
+  }
+  var listeners = this._listeners.slice();
+  for (var i = 0, l = listeners.length; i < l; i++) {
+    var listener = listeners[i];
+    if (typeof(listener[event])==='function') {
+      listener[event](this, args);
+    }
+  }
+  return true;
+};
+Member.prototype.addListener = function(listener) {
+  this._listeners.push(listener);
+};
+Member.prototype.removeListener = function(listener) {
+  for (var i = this._listeners.length-1; i >= 0; i--) {
+    if (this._listeners[i] == listener) {
+      this._listeners.splice(i, 1);
+    }
+  }
+};
+Member.prototype.onDisconnect = function() {
+  this.room = null;
+  this.invokeListener('onDisconnect', this.name);
+};
+Member.checkNameReg = /^\s*$/;
+Member.prototype.onLogin = function(data) {
+  if (this.name !== null || !data || !data.name) {
+    this.disconnect();
+    return;
+  }
+  var name = ''+data.name;
+  if (name.match(Member.checkNameReg)) {
+    this.disconnect();
+    return;
+  }
+  if (this.server.getMember(name) !== null) {
+    this.disconnect();
+    return;
+  }
+  this.name = name;
+  this.addListener(this.server);
+  this.socket.emit('ready');
+  this.invokeListener('onLogin', data.name);
 };
 Member.prototype.onGetRoomList = function() {
-  if (!this.name) {
-    this.socket.disconnect();
-    return;
-  }
-  this.sendRoomList();
+  this.invokeListener('onGetRoomList', null);
 };
 Member.prototype.onGenRoomId = function(data, fn) {
-  if (!this.name) {
-    this.socket.disconnect();
-    return;
-  }
-  if (!fn) {
-    return;
-  }
-  fn(this.server.newRoomName());
+  this.invokeListener('onGenRoomId', fn);
 };
 Member.prototype.onEnterRoom = function(data) {
-  if (!this.name || !data) {
-    this.socket.disconnect();
-    return;
-  }
   if (this.room !== null) {
-    this.socket.emit('error', {
-      errno: 'EROOM',
-      event: 'enterroom',
-      data: data
-    });
     return;
   }
   var room = this.server.getRoom(data);
   if (!room) {
-    this.socket.emit('error', {
-      errno: 'ENOENT',
-      event: 'enterroom',
-      data: data
-    });
     return;
   }
   this.room = room;
-  this.socket.join(room.getName());
+  this.addListener(room);
   this.socket.emit('enter', {
     room: room.getName(),
-    members: _.map(this.server.getMemberList(), function(member) { return member.name; })
   });
-  this.server.addMember(this, this.room);
-  this.sendGameEvent(this.room.getGameData());
+  this.invokeListener('onEnterRoom', data);
 };
 Member.prototype.onChatMessage = function(data) {
-  if (!this.name) {
-    this.socket.disconnect();
-    return;
-  }
   if (!this.room) {
-    this.socket.emit('error', {
-      errno: 'EROOM',
-      event: 'chatmessage',
-      data: data
-    });
     return;
   }
-  this.server.chatMessage(this, data);
+  this.invokeListener('onChatMessage', data);
 };
 Member.prototype.onGameEvent = function(data) {
   if (!this.room) {
-    this.socket.emit('error', {
-      errno: 'EROOM',
-      event: 'chatmessage',
-      data: data
-    });
     return;
   }
-  this.room.onGameData(data);
+  this.invokeListener('onGameEvent', data);
 };
 
-Member.prototype.sendRoomList = function() {
-  var rooms = _.map(this.server.getRoomList(), function(room) { return room.getName(); });
+Member.prototype.sendRoomList = function(rooms) {
   this.socket.emit('roomlist', rooms);
 };
+Member.prototype.sendMemberList = function(members) {
+  this.socket.emit('memberlist', members);
+};
 Member.prototype.addMember = function(member) {
-  this.socket.emit('addmember', member.name);
+  this.socket.emit('addmember', member.serialize());
 };
 Member.prototype.removeMember = function(member) {
-  this.socket.emit('removemember', member.name);
+  this.socket.emit('removemember', member.serialize());
 };
 Member.prototype.sendChatMessage = function(member, data) {
   this.socket.emit('chatmessage', {
-    name: member.name,
+    member: member.serialize(),
     message: data
   });
 };

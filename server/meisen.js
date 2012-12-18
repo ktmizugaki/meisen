@@ -94,7 +94,6 @@ Meisen.prototype.action_init = function() {
   this.invokeCallback(data);
 };
 Meisen.prototype.action_setup = function() {
-  console.log('setup');
   if (this.state !== Meisen.State.INIT) {
     return;
   }
@@ -191,6 +190,7 @@ Meisen.prototype.state_negli = function() {
   var agari = this.dealCard();
   var data = {
     action: 'agari', target: 'all',
+    current: this.current,
     agari: Meisen.cardToData(agari),
     players: [Meisen.playerToData(player)]
   };
@@ -315,13 +315,13 @@ Trick.prototype.cardStrength = function(card, meisen) {
     return 0x30;
   }
   if (card.suitStr == meisen.huki.suitStr) {
-    return 0x20 + (card.rank == 11? 15: card.rank);
+    return 0x20 + (card.rank == 11? 15: card.rank == 1? 13: card.rank-1);
   }
   if (card.rank == 11 && card.suitStr == Meisen.HUKUJACK_SUIT[meisen.huki.suitStr]) {
     return 0x20 + 14;
   }
   if (this.suitStr && card.suitStr == this.suitStr) {
-    return 0x10 + card.rank;
+    return 0x10 + (card.rank == 1? 13: card.rank-1);
   }
   return 0;
 };

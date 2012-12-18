@@ -116,23 +116,25 @@ var client = (function(){
     client.setActive('#roomlist');
     client.loadRoomList();
   }
-  client.roomlist = function(list) {
+  client.roomList = function(rooms) {
     var $div = $('#list-room');
     $div.empty();
-    _.each(list, function(room) {
+    _.each(rooms, function(room) {
       $div.append($('<a href="" class="room button"></a>').attr('roomid', room).text(room));
     });
   };
   client.enter = function(roominfo) {
     client.setActive('#room');
     $('#room #roomname').text(roominfo.name);
-    var $div = $('#room-name-list');
-    $div.empty();
-    _.each(roominfo.members, function(member) {
-      $div.append($('<div class="member"></div>').attr('memberid', member).text(member));
-    });
     $('#room #chat').empty();
     meisen.reset();
+  };
+  client.memberList = function(members) {
+    var $div = $('#room-name-list');
+    $div.empty();
+    _.each(members, function(member) {
+      $div.append($('<div class="member"></div>').attr('memberid', member).text(member));
+    });
   };
   client.addMember = function(member) {
     $('#room-name-list').append($('<div class="member"></div>').attr('memberid', member).text(member));
@@ -146,9 +148,9 @@ var client = (function(){
     });
   };
   client.chatmessage = function(chat) {
-    if (chat && chat.name && chat.message) {
+    if (chat && chat.member && chat.message) {
       var $div = $('#chat');
-      $div.append($('<div class="message"></div>').text(chat.name+': '+chat.message));
+      $div.append($('<div class="message"></div>').text(chat.member+': '+chat.message));
     }
   };
   client.gamedata = function(data) {

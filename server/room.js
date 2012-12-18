@@ -3,6 +3,7 @@ var Meisen = require('./meisen');
 
 function Room(options) {
   this.options = {};
+  this.members = [];
   this.meisen = new Meisen(_.bind(this.gameCallback, this));
   _.defaults(this.options, options, Room.defualtOptions);
   this.roomCallback = this.options.roomCallback;
@@ -17,7 +18,55 @@ Room.prototype.getName = function() {
 Room.prototype.getGameData = function() {
   return Meisen.meisenToData(this.meisen, Meisen.Target.all);
 };
-Room.prototype.onGameData = function(data) {
+Room.prototype.gameCallback = function(data, game) {
+  this.roomCallback(this, data);
+};
+/* Member Listener */
+Room.prototype.addMember = function(member) {
+  var index = -1;
+  _.each(this.members, function(m) {
+    if (m === member) {
+      index = i;
+    }
+    m.addMember(member);
+  });
+  if (index < 0) {
+    this.members.push(member);
+  }
+};
+Room.prototype.removeMember = function(member) {
+  var index = -1;
+  _.each(this.members, function(m, i) {
+    if (m === member) {
+      index = i;
+    }
+    m.removeMember(member);
+  });
+  member.removeListener(this);
+  if (index >= 0) {
+    this.members.splice(index, 1);
+  }
+};
+Room.prototype.onDisconnect = function(member, name) {
+  this.removeMember(member);
+};
+Room.prototype.onEnterRoom = function(member) {
+  this.addMember(member);
+  var members = _.map(this.members, function(m) { return m.serialize(); });
+  member.sendMemberList(members);
+  if (this.meisen) {
+    member.sendGameEvent(this.getGameData());
+  }
+};
+Room.prototype.onLeaveRoom = function(member) {
+  this.removeMember(member);
+};
+Room.prototype.onChatMessage = function(member, message) {
+  _.each(this.members, function(m, i) {
+    m.sendChatMessage(member, message);
+  });
+};
+Room.prototype.onGameEvent = function(member, data) {
   if (!this.meisen) {
     return false;
   }

@@ -9,6 +9,7 @@ function Connection(client, name) {
   socket.on('ready', _.bind(this.onReady, this));
   socket.on('roomlist', _.bind(this.onRoomList, this));
   socket.on('enter', _.bind(this.onEnter, this));
+  socket.on('memberlist', _.bind(this.onMemberList, this));
   socket.on('addmember', _.bind(this.onAddMember, this));
   socket.on('removemember', _.bind(this.onRemoveMember, this));
   socket.on('chatmessage', _.bind(this.onChatMessage, this));
@@ -32,12 +33,17 @@ Connection.prototype.onReady = function() {
 };
 Connection.prototype.onRoomList = function(data) {
   if (this.client.socket === this && data && data.length) {
-    this.client.roomlist(data);
+    this.client.roomList(data);
   }
 };
 Connection.prototype.onEnter = function(data) {
   if (this.client.socket === this && data) {
     this.client.enter(data);
+  }
+};
+Connection.prototype.onMemberList = function(data) {
+  if (this.client.socket === this && data) {
+    this.client.memberList(data);
   }
 };
 Connection.prototype.onAddMember = function(data) {

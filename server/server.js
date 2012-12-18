@@ -5,7 +5,7 @@ function startServer(port) {
   var server = require('http').createServer(app);
   var io = require('socket.io').listen(server);
   server.listen(port);
-  app.use(express.logger());
+  //app.use(express.logger());
   app.use(express.favicon());
   app.use(express.static(path.dirname(__dirname) + '/client'));
   app.use(express.static(path.dirname(__dirname) + '/shared'));
