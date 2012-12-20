@@ -70,6 +70,7 @@ function Card(id, suit, rank, name) {
   this.rank = rank;
   this.name = name;
   this.suitStr = Card.SUIT[suit-1] || '';
+  this.__acl = 0;
 }
 CardGame.Card = Card;
 Card.SUIT = ['c','d','h','s'];

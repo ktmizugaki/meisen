@@ -5,14 +5,11 @@ exports.start = function(port) {
   var Member = require('./member');
   var memberlist = [];
   var membernames = {};
-  var roomlist = new room.RoomList(roomCallback);
+  var roomlist = new room.RoomList();
   for (var i = 0; i < 10; i++) {
     roomlist.createRoom();
   }
 
-  function roomCallback(room, data) {
-    server.gameEvent(room, data);
-  }
   server.io.sockets.on('connection', function(socket) {
     memberlist.push(new Member(server, socket));
   });
@@ -30,13 +27,6 @@ exports.start = function(port) {
       return membernames[name];
     }
     return null;
-  };
-  server.gameEvent = function(room, data) {
-    _.each(memberlist, function(m) {
-      if (m.room === room) {
-        m.sendGameEvent(data);
-      }
-    });
   };
 
   /* Member Event */

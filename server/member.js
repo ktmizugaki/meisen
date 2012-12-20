@@ -60,6 +60,7 @@ Member.prototype.removeListener = function(listener) {
   }
 };
 Member.prototype.onDisconnect = function() {
+  this.disconnected = true;
   this.room = null;
   this.invokeListener('onDisconnect', this.name);
 };
@@ -74,6 +75,7 @@ Member.prototype.onLogin = function(data) {
     this.disconnect();
     return;
   }
+  name = name.substring(0, 16);
   if (this.server.getMember(name) !== null) {
     this.disconnect();
     return;
@@ -134,6 +136,9 @@ Member.prototype.sendChatMessage = function(member, data) {
     member: member.serialize(),
     message: data
   });
+};
+Member.prototype.sendPlayers = function(players) {
+  this.sendGameEvent(players);
 };
 Member.prototype.sendGameEvent = function(data) {
   this.socket.emit('game', data);

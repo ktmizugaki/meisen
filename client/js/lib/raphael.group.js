@@ -35,7 +35,16 @@ Raphael.gr = {
         }
       }
     }
-    return null;
+    return false;
+  },
+  remove: function() {
+    if (this.children) {
+      for (var i = 0, ii = this.children.length; i < ii; i++) {
+        this.children[i].remove();
+      }
+    }
+    delete this.children;
+    Raphael.el.remove.call(this);
   },
   move: function(x, y) {
     var dx = x - this.x, dy = y - this.y;
@@ -44,9 +53,11 @@ Raphael.gr = {
   },
   click: function(fn) {
     if (this.children) {
-      fn = _.bind(fn, this);
+      var self = this;
+      var bound = function() { return fn.apply(self, arguments); };
+      bound.fn = fn;
       for (var i = 0, ii = this.children.length; i < ii; i++) {
-        this.children[i].click && this.children[i].click(fn);
+        this.children[i].click && this.children[i].click(bound);
       }
     }
   },
