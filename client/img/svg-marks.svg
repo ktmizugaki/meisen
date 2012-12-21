@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<g>
+<g id="m_club"><use xlink:href="svg-cards.svg#club" transform="rotate(180,4,4)"/></g>
+<g id="m_diamond"><use xlink:href="svg-cards.svg#diamond" transform="rotate(180,4,4)"/></g>
+<g id="m_heart"><use xlink:href="svg-cards.svg#heart" transform="rotate(180,4,4)"/></g>
+<g id="m_spade"><use xlink:href="svg-cards.svg#spade" transform="rotate(180,4,4)"/></g>
+<g id="m_notr"><text fill="#666" transform="translate(1,15)" font-family="Bitstream Vera Serif" font-weight="bold" font-size="21">N</text></g>
+</g>
+</svg>

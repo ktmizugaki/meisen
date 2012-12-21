@@ -1,24 +1,29 @@
 var CardNames = [];
+CardNames.ctor = function (suit, rank, name) {
+  this.name = name || rank+'_'+suit;
+  this.suit = suit;
+  this.rank = rank;
+};
+CardNames.ctor.prototype.shortName = function () {
+  if (this.name == 'back') return 'bc';
+  if (this.suit == 'joker') return 'jk';
+  if (!this.suit || !this.rank) return this.name.substr(0, 2);
+  var suit = this.suit.charAt(0);
+  var rank = this.rank.charAt(0).toUpperCase();
+  if (rank == '1') rank = 'A';
+  return suit+rank;
+};
 _.each('club,diamond,heart,spade'.split(','), function(suit, suitv) {
   _.each('1,2,3,4,5,6,7,8,9,10,jack,queen,king'.split(','), function(rank, rankv) {
     var id = suitv*13 + rankv;
-    CardNames[id] = rank+'_'+suit;
+    CardNames[id] = new CardNames.ctor(suit, rank);
   });
 });
 _.each('black_joker,red_joker'.split(','), function(other, val) {
   var id = 52+val;
-  CardNames[id] = other;
+  CardNames[id] = new CardNames.ctor('joker', null, other);
 });
-CardNames[-1] = 'back';
-CardNames.shortName = function(name) {
-  if (name == 'back') return 'bc';
-  if (name.indexOf('joker') > -1) return 'jk';
-  var index = name.indexOf('_');
-  var suit = name.charAt(index+1);
-  var rank = name.substring(0, index>2?1:index).toUpperCase();
-  if (rank == '1') rank = 'A';
-  return suit+rank;
-};
+CardNames[-1] = new CardNames.ctor('back', null, 'back');
 
 function GameState(name, value) {
   this.name = name;

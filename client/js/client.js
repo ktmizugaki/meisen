@@ -1,7 +1,6 @@
 var client = (function(){
   var client = {};
   var meisen = new MeisenUI();
-  client.paper = null;
   client.name = null;
   client.socket = null;
   client.socketOptions = {

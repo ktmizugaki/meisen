@@ -10,8 +10,11 @@ var CARD_COLORS = {
   s: '#000000', c: '#000000', d: '#E6180A', h: '#E6180A',
   n: '#666666', j: '#000000',
 };
+var SUIT_UNICODE = { s:'♠', c:'♣', d:'♦', h:'♥', n:'N' };
 var svgCards = null;
+var svgMarks = null;
 var meisen = null;
+var CardImageMode = 'text';
 function cloneSvgCard(name, id) {
   var image = $('#'+name, svgCards)[0].cloneNode(true);
   var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -21,46 +24,78 @@ function cloneSvgCard(name, id) {
   id && (g.id = id);
   return g;
 }
-function cloneSvgMark(name, id) {
-  var image = $('#m_'+name, svgCards)[0].cloneNode(true);
+function cloneSvgMark(name, id, x, y) {
+  var image = $('#m_'+name, svgMarks)[0].cloneNode(true);
   image.id = id || '';
+  if (x || y) {
+    image.setAttribute('transform', 'translate('+x+','+y+')');
+  }
   return image;
 }
 Raphael._availableAttrs['font'] = '22px "Arial"';
 Raphael._availableAttrs['font-size'] = '22px';
 Raphael.fn.card = function(cardid, x, y) {
-  var name = CardNames[cardid];
   var card = this.group();
-  //card.image = cloneSvgCard(name);
-  if (card.image) {
-    card.node.appendChild(card.image);
-  }
   card.rect = this.rect(0, 0, CARD_WIDTH, CARD_HEIGHT),
-  card.rect.attr({fill: "#fff"});
   card.push(card.rect);
-  if (cardid != -1) {
-    var shortname = CardNames.shortName(name);
-    card.text = this.text(4, 16, shortname);
-    card.push(card.text);
-    var color = CARD_COLORS[shortname.charAt(0)];
-    card.text.attr({'text-anchor': 'start', fill: color});
-    card.text.attr({'x': 4, 'y': 16 });
-  } else {
-    card.rect.attr({fill: "#9af"});
-  }
+  card.setValue = Raphael.fn.card.setValue;
 
-  if (card.image) {
-    card.rect.attr({'opacity': 0});
-    if (card.text) {
-      card.text.attr({'opacity': 0});
-    }
-  }
-
-  card.value = cardid;
+  this.value = -1;
+  card.setValue(cardid);
   card.move(x, y);
   card.click(Raphael.fn.card.onClick);
   return card;
 };
+Raphael.fn.card.setValue = function(cardid) {
+  var name = CardNames[cardid];
+  var text = null;
+  if (CardImageMode === 'text') {
+    if (cardid == -1) {
+      this.rect.attr({fill: "#9af", 'opacity': 1});
+    } else {
+      this.rect.attr({fill: '#fff', 'opacity': 1});
+      if (cardid < 52) {
+        text = name.rank.toUpperCase();
+        if (text.length > 2) text = text.charAt(0);
+        if (text == '1') text = 'A';
+        text = SUIT_UNICODE[name.suit.charAt(0)] + text;
+      } else {
+        text = name.shortName();
+      }
+    }
+  } else {
+    this.rect.attr({fill: '#fff', 'opacity': 0});
+  }
+  if (text) {
+    if (!this.text) {
+      this.text = this.paper.text(CARD_WIDTH/2, 16, '');
+      this.push(this.text);
+    }
+    var color = CARD_COLORS[name.suit.charAt(0)];
+    this.text.attr({'text': text, 'fill': color});
+  } else if (this.text) {
+    this.exclude(this.text);
+    this.text.remove();
+    this.text = null;
+  }
+
+  if (CardImageMode === 'svg') {
+    if (this.image && this.value != cardid) {
+      this.node.removeChild(this.image);
+      this.image = null;
+    }
+    this.image = cloneSvgCard(name.name);
+    this.node.insertBefore(this.image, this.node.firstChild);
+  } else if (this.image) {
+    this.node.removeChild(this.image);
+    this.image = null;
+  }
+  if (CardImageMode === 'img') {
+    // TODO
+  }
+
+  this.value = cardid;
+}
 Raphael.fn.card.onClick = function(){ meisen.onClickCard(this); };
 Raphael.fn.player = function(playerid, x, y) {
   var player = this.group();
@@ -71,7 +106,7 @@ Raphael.fn.player = function(playerid, x, y) {
   player.push(player.text);
   player.huki = null;
   player.hand = [];
-  player.text.attr({'text-anchor': 'start' });
+  player.text.attr({'text-anchor':'start'});
   player.text.click(function() { meisen.onClickSeat(player.pid); });
 
   return player;
@@ -103,7 +138,7 @@ Raphael.fn.player.proto = {
       var card = this.paper.card(value, 0, 0);
       this.addcard(card);
     }, this);
-  }
+  },
   cardpos: function(card, x) {
     card.move(x*CARD_WIDTH, PPANEL_HEIGHT-CARD_HEIGHT);
   },
@@ -133,15 +168,27 @@ Raphael.fn.player.proto = {
     return card;
   },
   huku: function(huki) {
-    if (this.huki !== null) {
-      this.huki.remove();
-      this.huki = null;
-    }
     if (huki) {
       var bbox = this.text.getBBox();
-      this.huki = this.paper.text(bbox.x + bbox.width + 16, 9, ''+huki)
-      this.huki.attr({'font-size': '18px', 'text-anchor': 'start' });
+      var color = CARD_COLORS[huki.charAt(0)];
+      if (huki == 'p') {
+        huki = 'Pass';
+      } else {
+        var suit = huki.charAt(0);
+        var trick = huki.substr(1);
+        huki = SUIT_UNICODE[suit] + trick;
+      }
+      if (!this.huki) {
+        this.huki = this.paper.text(16, 12, ''+huki)
+        this.huki.attr({'font-size': '16px', 'text-anchor': 'start'});
+      }
+      this.huki.attr({'x': (bbox.x+bbox.width+16),'fill':color});
       this.push(this.huki);
+    } else {
+      if (this.huki !== null) {
+        this.huki.remove();
+        this.huki = null;
+      }
     }
   },
   highlight: function(on) {
@@ -220,6 +267,7 @@ MeisenUI.prototype.onResize = function() {
 };
 MeisenUI.prototype.init = function() {
   svgCards = $('svg', $('#svg-cards')[0].contentDocument)[0];
+  svgMarks = $('svg', $('#svg-marks')[0].contentDocument)[0];
   var group = svgCards.children[1];
   for (var i = 0, ii = group.children.length; i < ii; i++) {
     var g = group.children[i];
@@ -323,13 +371,14 @@ MeisenUI.prototype.setCurrentPlayer = function(playerid) {
   }
 };
 MeisenUI.prototype.setupPlayer = function(data) {
-  if (!this['player'+data.id] || this['player'+data.id].removed) {
+  if (!this['player'+data.id]) {
     this['player'+data.id] = this.paper.player(data.id, 0, 0);
   }
   var relpos = (data.id - this.watching + MEISEN_NUM_PLAYER) % MEISEN_NUM_PLAYER;
   var player = this['player'+data.id];
   var pos = MEISEN_PLAYER_POS[relpos];
   player.transform('');
+  player.x = player.y = 0;
   player.move(pos.x, pos.y);
   player.rotate(-pos.r, 0, 0);
   player.scale(pos.s, pos.s, 0, 0);
@@ -365,7 +414,7 @@ MeisenUI.prototype.setupHukiList = function(data) {
   }
   var w = 44, h = 28;
   this.hukiPanel = this.paper.group();
-  this.hukiPanel.move((CANVAS_WIDTH-w*6)/2 - CARD_WIDTH, (CANVAS_HEIGHT-h*6)/2 - 8);
+  this.hukiPanel.move((CANVAS_WIDTH-w*6)/2 - CARD_WIDTH, CARD_HEIGHT);
   var meisen = this;
   var func = function(){ meisen.onClickHuki(this); };
   var pass = this.paper.text(24, 5, 'Pass');
@@ -389,7 +438,7 @@ MeisenUI.prototype.setupHukiList = function(data) {
       g.trick = trick;
       g.node.appendChild(cloneSvgMark(suit));
       g.rect = this.paper.rect(-2, -6, w, h);
-      g.text = this.paper.text(26, 8, ''+trick);
+      g.text = this.paper.text(30, 8, ''+trick);
       g.push(g.rect);
       g.push(g.text);
       g.rect.attr({fill:'#fff', opacity:0});
@@ -401,7 +450,7 @@ MeisenUI.prototype.setupHukiList = function(data) {
 };
 MeisenUI.prototype.setupTable = function(data) {
   if (!this.table || this.table.removed) {
-    this.table = this.paper.table(CANVAS_WIDTH/2, CANVAS_HEIGHT/2);
+    this.table = this.paper.table(CANVAS_WIDTH/2, CANVAS_HEIGHT/2-CARD_HEIGHT*0.2);
   }
   this.table.clearAll();
   if (data) {
@@ -414,6 +463,11 @@ MeisenUI.prototype.setupTable = function(data) {
   }
 };
 MeisenUI.prototype.setupEnd = function(data) {
+  this.hukiPanel = null;
+  this.table = null;
+  for (var i = 0; i < 4; i++) {
+    this['player'+i] = null;
+  }
   this.paper.clear();
   this.paper.text(CANVAS_WIDTH/2, CANVAS_HEIGHT/2, '終了');
 };
@@ -424,7 +478,7 @@ MeisenUI.prototype.setWatching = function(pos) {
     var pos = MEISEN_PLAYER_POS[relpos];
     var player = this['player'+i];
     if (player) {
-      player._.transform = [];
+      player.transform('');
       player.x = player.y = 0;
       player.move(pos.x, pos.y);
       player.rotate(-pos.r, 0, 0);
@@ -513,7 +567,6 @@ MeisenUI.prototype.action_play = function(data) {
   this.setCurrentPlayer(data.current);
 };
 MeisenUI.prototype.action_endtrick = function(data) {
-  console.log('win: '+data.current);
   this.state = 'endtrick';
   this.setCurrentPlayer(data.current);
 };
