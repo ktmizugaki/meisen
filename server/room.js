@@ -6,16 +6,11 @@ function Room(options) {
   this.members = [];
   this.players = [null, null, null, null];
   _.defaults(this.options, options, Room.defualtOptions);
-  this.initMeisen();
+  this.meisen = new Meisen(_.bind(this.gameCallback, this));
 }
 Room.defualtOptions = {
   name: 'room',
   autoVanish: true,
-};
-Room.prototype.initMeisen = function() {
-  delete require.cache[require.resolve('./meisen')];
-  Meisen = require('./meisen');
-  this.meisen = new Meisen(_.bind(this.gameCallback, this));
 };
 Room.prototype.getName = function() {
   return this.options.name;
@@ -135,9 +130,6 @@ Room.prototype.onGameEvent = function(member, data) {
   if (this.players[data.player] !== member.name) {
     console.log('wrong player:', data.player, this.players[data.player], member.name);
     return;
-  }
-  if (data.action == 'init') {
-    this.initMeisen();
   }
   return this.meisen.onData(data);
 };

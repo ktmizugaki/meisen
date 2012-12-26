@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var sanitizer = require('sanitizer');
 
 function Member(server, socket) {
   this.server = server;
@@ -70,7 +71,7 @@ Member.prototype.onLogin = function(data) {
     this.disconnect();
     return;
   }
-  var name = ''+data.name;
+  var name = sanitizer.escape(sanitizer.sanitize(''+data.name));
   if (name.match(Member.checkNameReg)) {
     this.disconnect();
     return;
@@ -110,6 +111,7 @@ Member.prototype.onChatMessage = function(data) {
   if (!this.room) {
     return;
   }
+  data = sanitizer.escape(sanitizer.sanitize(''+data));
   this.invokeListener('onChatMessage', data);
 };
 Member.prototype.onGameEvent = function(data) {
