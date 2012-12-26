@@ -19,6 +19,7 @@ function Meisen(callback, cb_data) {
   this.current = 0;
   this.ack = 0;
   this.point = null;
+  this.createPlayers(Meisen.NUM_PLAYER, Meisen.Player);
 }
 util.inherits(Meisen, CardGame);
 Meisen.CARD_SELECTOR = function(card) {
@@ -117,6 +118,7 @@ Meisen.prototype.action_init = function() {
   this.current = this.dealer;
   this.ack = 0;
   this.point = null;
+  this.createPlayers(Meisen.NUM_PLAYER, Meisen.Player);
   var data = { action: 'init', target: 'all' };
   this.invokeCallback(data);
 };
@@ -130,7 +132,19 @@ Meisen.prototype.action_setup = function() {
   }
   this.createDeck(Meisen.CARD_SELECTOR, Meisen.NUM_JOKER);
   this.shuffleDeck();
-  this.createPlayers(Meisen.NUM_PLAYER, Meisen.Player);
+  _.each(this.players, function(player) {
+    player.huki = null;
+    player.hand = [];
+  }, this);
+  this.table = [];
+  this.tricks.length = 0;
+  this.huki = null;
+  this.agari = null;
+  this.negli = null;
+  this.trick = null;
+  this.current = this.dealer;
+  this.ack = 0;
+  this.point = null;
   for (var i = 0; i < 40; i++) {
     var card = this.dealCard();
     card.__acl = Target.PLAYERS[this.current].acbit;
@@ -238,7 +252,6 @@ Meisen.prototype.action_huku = function(data) {
   this.invokeCallback(data);
   if (this.current == 4) {
     if (this.huki === null) {
-      this.action_init();
       this.action_setup();
       return;
     }
@@ -355,6 +368,11 @@ Meisen.prototype.action_ackendtrick = function(data) {
   if ((this.ack&0xf) != 0xf) {
     return;
   }
+  data = {
+    action: 'endendtrick', target: 'all',
+    current: this.current
+  };
+  this.invokeCallback(data);
   this.ack = 0;
   if (this.toid) {
     clearTimeout(this.toid);
@@ -411,7 +429,7 @@ Meisen.prototype.state_result = function() {
   var self = this;
   this.toid = setTimeout(function() {
     self.ack = 0xf;
-    self.action_ackend();
+    self.action_ackresult();
   }, 300*1000);
 };
 Meisen.prototype.action_ackresult = function(data) {
@@ -432,7 +450,6 @@ Meisen.prototype.action_ackresult = function(data) {
     this.toid = 0;
   }
   this.dealer = (this.dealer+1)%4;
-  this.action_init();
   this.action_setup();
 };
 

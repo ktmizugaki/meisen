@@ -8,16 +8,16 @@ var CARD_SCALE = Math.min(CARD_WIDTH/IMAGE_CARD_WIDTH, CARD_HEIGHT/IMAGE_CARD_HE
 var CARD_SCALE_TEXT = 'scale('+CARD_SCALE+')';
 var CARD_COLORS = {
   s: '#000000', c: '#000000', d: '#E6180A', h: '#E6180A',
-  n: '#666666', j: '#000000', p: '#00BB00'
+  n: '#5C5C5C', j: '#000000', p: '#00BB00'
 };
 var KIRIHUDA_TEXT = {
   c: 'クラブ', s: 'スペード', h: 'ハート', d: 'ダイア', n: 'なし'
 };
 var TABLE_CARD_POS = [
-  {x:-CARD_WIDTH/2,   y: CARD_HEIGHT/4  },
-  {x: CARD_WIDTH/2,   y:-CARD_HEIGHT/2  },
-  {x:-CARD_WIDTH/2,   y:-CARD_HEIGHT*5/4},
-  {x:-CARD_WIDTH*3/2, y:-CARD_HEIGHT/2  },
+  {x:-CARD_WIDTH/2, y: CARD_HEIGHT/4  },
+  {x: CARD_WIDTH,   y:-CARD_HEIGHT/2  },
+  {x:-CARD_WIDTH/2, y:-CARD_HEIGHT*5/4},
+  {x:-CARD_WIDTH*2, y:-CARD_HEIGHT/2  },
 ];
 var SUIT_UNICODE = { s:'♠', c:'♣', d:'♦', h:'♥', n:'N' };
 var PLAYER_SCALE_END = 0.7;
@@ -48,6 +48,7 @@ Raphael._availableAttrs['font-size'] = '22px';
 Raphael.fn.card = function(cardid, x, y) {
   var card = this.group();
   card.rect = this.rect(0, 0, CARD_WIDTH-1, CARD_HEIGHT-1),
+  card.rect.attr({'stroke': '#555'});
   card.push(card.rect);
   card.setValue = Raphael.fn.card.setValue;
 
@@ -222,14 +223,11 @@ Raphael.fn.player.proto = {
   },
   highlight: function(on) {
     if (on) {
-      var width = Math.max(this.hand.length, 10)*CARD_WIDTH;
       if (!this._highlight) {
-        this._highlight = this.paper.rect(0, 0, width, PPANEL_HEIGHT);
+        this._highlight = this.paper.rect(0, 0, 10*CARD_WIDTH, PPANEL_HEIGHT);
         this._highlight.attr({'stroke': '#00f', 'stroke-width':'2px', 'fill':'#ccf'});
         this.push(this._highlight);
         this._highlight.toBack();
-      } else {
-        this._highlight.attr({'width': width});
       }
     } else {
       if (this._highlight) {
@@ -373,12 +371,12 @@ MeisenUI.prototype.onData = function(data) {
 };
 MeisenUI.prototype.onClickCard = function(card) {
   if (this.state == 'negli') {
-    var data = { action: 'negru', player: meisen.current.pid, card: card.value };
+    var data = { action: 'negru', player: this.watching, card: card.value };
     client.sendGameEvent(data);
     return;
   }
   if (this.state == 'play') {
-    var data = { action: 'play', player: meisen.current.pid, card: card.value };
+    var data = { action: 'play', player: this.watching, card: card.value };
     client.sendGameEvent(data);
     return;
   }
@@ -387,6 +385,9 @@ MeisenUI.prototype.onClickSeat = function(playerid) {
   this.setWatching(playerid);
   if (this.playernames[playerid] === null) {
     var data = { action: 'seat', pos: playerid };
+    client.sendGameEvent(data);
+  } else if (this.playernames[playerid] === client.name)  {
+    var data = { action: 'seat', pos: playerid, clear:true };
     client.sendGameEvent(data);
   }
 };
@@ -611,10 +612,12 @@ MeisenUI.prototype.setupEnd = function(data) {
 };
 MeisenUI.prototype.setWatching = function(pos) {
   this.watching = pos;
-  for (var i = 0; i < 4; i++) {
-    this.setPlayerPos(i);
-    if (this.table) {
-      this.table.setCardPos(i, pos);
+  if (this.state != 'result') {
+    for (var i = 0; i < 4; i++) {
+      this.setPlayerPos(i);
+      if (this.table) {
+        this.table.setCardPos(i, pos);
+      }
     }
   }
 };
@@ -707,6 +710,9 @@ MeisenUI.prototype.action_play = function(data) {
 };
 MeisenUI.prototype.action_endtrick = function(data) {
   this.state = 'endtrick';
+  this.setCurrentPlayer(data.current);
+};
+MeisenUI.prototype.action_endendtrick = function(data) {
   this.setCurrentPlayer(data.current);
   var player = this['player'+data.current];
   if (player) {

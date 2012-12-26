@@ -112,12 +112,15 @@ Room.prototype.onGameEvent = function(member, data) {
     if (pos !== 0 && pos !== 1 && pos !== 2 && pos !== 3) {
       return false;
     }
-    if (this.players[pos] !== null) {
-      return false;
-    }
     this.clearSeat(member);
-    this.setSeat(pos, member);
-    member.sendGameEvent(Meisen.meisenToData(this.meisen, Meisen.Target.PLAYERS[pos]));
+    if (!data.clear) {
+      if (this.players[pos] !== null) {
+        return false;
+      }
+      this.setSeat(pos, member);
+    }
+    var target = data.clear? Meisen.Target.all: Meisen.Target.PLAYERS[pos];
+    member.sendGameEvent(Meisen.meisenToData(this.meisen, target));
     return true;
   }
   if (!this.meisen) {
