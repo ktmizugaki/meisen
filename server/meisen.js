@@ -38,6 +38,7 @@ Meisen.meisenToData = function(meisen, target) {
     table: _.map(meisen.table, Meisen.cardToData(target.acbit)),
     huki: _.clone(meisen.huki),
     trick: Meisen.trickToData(target.acbit)(meisen.trick),
+    point: meisen.point,
     tricks: _.map(meisen.tricks, Meisen.trickToData(target.acbit)),
     agari: Meisen.cardToData(target.acbit)(meisen.agari),
     negli: Meisen.cardToData(target.acbit)(meisen.negli),
@@ -82,6 +83,18 @@ Meisen.prototype.invokeCallback = function(data) {
     this.callback(data, this, this.cb_data);
   }
 };
+Meisen.prototype.setTimeout = function(func, to) {
+  if (this.toid) {
+    this.clearTimeout();
+  }
+  this.toid = setTimeout(_.bind(func, this), to);
+};
+Meisen.prototype.clearTimeout = function() {
+  if (this.toid) {
+    clearTimeout(this.toid);
+    this.toid = 0;
+  }
+};
 Meisen.prototype.onData = function(data) {
   if (!data || typeof data.action !== 'string') {
     return false;
@@ -102,10 +115,7 @@ Meisen.prototype.cardSuitStr = function(card) {
   return card.suitStr;
 };
 Meisen.prototype.action_init = function() {
-  if (this.toid) {
-    clearTimeout(this.toid);
-    this.toid = 0;
-  }
+  this.clearTimeout();
   this.state = Meisen.State.INIT;
   this.deck = null;
   this.players = [];
@@ -126,10 +136,9 @@ Meisen.prototype.action_setup = function() {
   if (this.state !== Meisen.State.INIT) {
     return;
   }
-  if (this.toid) {
-    clearTimeout(this.toid);
-    this.toid = 0;
-  }
+  this.state_setup();
+};
+Meisen.prototype.state_setup = function() {
   this.createDeck(Meisen.CARD_SELECTOR, Meisen.NUM_JOKER);
   this.shuffleDeck();
   _.each(this.players, function(player) {
@@ -174,15 +183,15 @@ Meisen.prototype.action_huku = function(data) {
     console.log('Meisen: huku: wrong player:', data.player, '/', this.current);
     return;
   }
-  if (this.toid) {
-    clearTimeout(this.toid);
-    this.toid = 0;
+  var player = this.currentPlayer();
+  if (player.huki != null) {
+    return;
   }
+  this.clearTimeout();
   var suitStr = data.suit;
   var trick = data.trick;
   var suitOrder = _.indexOf(Meisen.SUIT_ORDER, suitStr);
   var trickOrder = _.indexOf(Meisen.TRICK_ORDER, trick);
-  var player = this.currentPlayer();
   if (suitOrder == -1) {
     console.log('ERROR: invalid suit:', suitStr);
     return;
@@ -205,16 +214,16 @@ Meisen.prototype.action_huku = function(data) {
   }
   if (suitStr == 'b') {
     var hasPicture = false;
+    var singleQueen = 0;
     var fourJacks = 0;
     _.each(player.hand, function(card) {
-      if (card.rank == 1 || card.rank >= 11) {
+      if (card.rank == 1 || card.rank == 11 || card.rank == 13) {
         hasPicture = true;
       }
-      if (card.rank == 11) {
-        fourJacks++;
-      }
+      if (card.rank == 11) fourJacks++;
+      if (card.rank == 12) singleQueen++;
     });
-    if (hasPicture && fourJacks != 4) {
+    if ((hasPicture || singleQueen > 1) && fourJacks != 4) {
       console.log('can\'t declare broken:', player.id);
       return;
     }
@@ -228,10 +237,7 @@ Meisen.prototype.action_huku = function(data) {
       players: [ Meisen.playerToData(0xffff)(player) ]
     };
     this.invokeCallback(data);
-    var self = this;
-    this.toid = setTimeout(function() {
-      self.action_setup();
-    }, 5000);
+    this.setTimeout(this.state_setup, 5000);
     return;
   } if (suitStr == 'p') {
     player.huki = 'p';
@@ -242,7 +248,7 @@ Meisen.prototype.action_huku = function(data) {
       suitOrder: suitOrder, trickOrder: trickOrder
     };
   }
-  this.current++;
+  this.playerNext();
   this.state = Meisen.State.HUKI;
   var data = {
     action: 'huku', target: 'all',
@@ -250,9 +256,9 @@ Meisen.prototype.action_huku = function(data) {
     players: [ { id: player.id, huki: player.huki, } ]
   };
   this.invokeCallback(data);
-  if (this.current == 4) {
+  if (this.current == this.dealer) {
     if (this.huki === null) {
-      this.action_setup();
+      this.setTimeout(this.state_setup, 3000);
       return;
     }
     this.state_negli();
@@ -261,14 +267,13 @@ Meisen.prototype.action_huku = function(data) {
   }
 };
 Meisen.prototype.state_huki = function() {
-  var meisen = this;
-  this.toid = setTimeout(function() {
-    meisen.state = Meisen.State.HUKI;
+  this.setTimeout(function() {
+    this.state = Meisen.State.HUKI;
     var data = {
       action: 'huki', target: 'all',
-      current: meisen.current,
+      current: this.current,
     };
-    meisen.invokeCallback(data);
+    this.invokeCallback(data);
   }, 1000);
 };
 Meisen.prototype.state_negli = function() {
@@ -351,10 +356,9 @@ Meisen.prototype.action_play = function(data) {
       current: this.current
     };
     this.invokeCallback(data);
-    var self = this;
-    this.toid = setTimeout(function() {
-      self.ack = 0xf;
-      self.action_ackendtrick();
+    this.setTimeout(function() {
+      this.ack = 0xf;
+      this.action_ackendtrick();
     }, 5000);
   }
 };
@@ -373,11 +377,8 @@ Meisen.prototype.action_ackendtrick = function(data) {
     current: this.current
   };
   this.invokeCallback(data);
+  this.clearTimeout();
   this.ack = 0;
-  if (this.toid) {
-    clearTimeout(this.toid);
-    this.toid = 0;
-  }
   this.tricks.push(this.trick);
   this.trick = null;
   if (this.tricks.length >= 10) {
@@ -399,9 +400,6 @@ Meisen.prototype.state_result = function() {
   for (var i = 0; i < 10; i++) {
     if (this.tricks[i].result()%2 == p) t++;
   }
-  console.log('p =', p);
-  console.log('t =', t);
-  console.log(this);
   if (t >= this.huki.trick) {
     this.point = t + this.huki.trick - 10;
     this.players[p].points += this.point;
@@ -421,15 +419,15 @@ Meisen.prototype.state_result = function() {
     action: 'result', target:'all',
     huki: _.clone(this.huki),
     point: this.point,
+    players: _.map(this.players, Meisen.playerToData(Target.all.acbit)),
     agari: Meisen.cardToData(Target.all.acbit)(this.agari),
     negli: Meisen.cardToData(Target.all.acbit)(this.negli),
     tricks: _.map(this.tricks, Meisen.trickToData(Target.all.acbit)),
   };
   this.invokeCallback(data);
-  var self = this;
-  this.toid = setTimeout(function() {
-    self.ack = 0xf;
-    self.action_ackresult();
+  this.setTimeout(function() {
+    this.ack = 0xf;
+    this.action_ackresult();
   }, 300*1000);
 };
 Meisen.prototype.action_ackresult = function(data) {
@@ -445,12 +443,9 @@ Meisen.prototype.action_ackresult = function(data) {
   }
   this.point = null;
   this.ack = 0;
-  if (this.toid) {
-    clearTimeout(this.toid);
-    this.toid = 0;
-  }
+  this.clearTimeout();
   this.dealer = (this.dealer+1)%4;
-  this.action_setup();
+  this.state_setup();
 };
 
 function State(name, value) {

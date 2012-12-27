@@ -51,6 +51,7 @@ Raphael.fn.card = function(cardid, x, y) {
   card.rect.attr({'stroke': '#555'});
   card.push(card.rect);
   card.setValue = Raphael.fn.card.setValue;
+  card.setFrame = Raphael.fn.card.setFrame;
 
   this.value = -1;
   card.setValue(cardid);
@@ -111,6 +112,21 @@ Raphael.fn.card.setValue = function(cardid) {
 
   this.value = cardid;
 }
+Raphael.fn.card.setFrame = function(color) {
+  if (!color) {
+    if (this.frame) {
+      this.exclude(this.frame);
+      this.frame.remove();
+      this.frame = null;
+    }
+    return;
+  }
+  if (!this.frame) {
+    this.frame = this.paper.rect(0.5, 0.5, CARD_WIDTH-2, CARD_HEIGHT-2);
+    this.push(this.frame);
+  }
+  this.frame.attr({'stroke': color, 'stroke-width': '2px'});
+};
 Raphael.fn.card.onClick = function(){ meisen.onClickCard(this); };
 Raphael.fn.player = function(playerid, x, y) {
   var player = this.group();
@@ -252,9 +268,7 @@ Raphael.fn.table = function(x, y) {
     this.push(card);
     this.players[playerid] = card;
     if (this.pos == 0) {
-      card.frame = this.paper.rect(0, 0, CARD_WIDTH-2, CARD_HEIGHT-2);
-      card.frame.attr({'stroke': '#00BB00', 'stroke-width': '2px'});
-      this.push(card.frame);
+      card.setFrame('#00BB00');
     }
     this.setCardPos(playerid, watching);
     this.pos++;
@@ -265,18 +279,11 @@ Raphael.fn.table = function(x, y) {
     card = this.players[playerid];
     if (card) {
       card.attr(pos);
-      if (card.frame) {
-        card.frame.attr(pos);
-      }
     }
   };
   table.clearCard = function(playerid) {
     var card = this.players[playerid];
     if (card) {
-      if (card.frame) {
-        this.exclude(card.frame);
-        card.frame.remove();
-      }
       this.exclude(card);
       card.remove();
       this.players[playerid] = null;
@@ -341,6 +348,10 @@ MeisenUI.prototype.init = function() {
   $('#game-ack').click(function(){
     if (meisen.state == 'endtrick') {
       var data = { action: 'ackendtrick', player: meisen.watching };
+      client.sendGameEvent(data);
+    }
+    if (meisen.state == 'result') {
+      var data = { action: 'ackresult', player: meisen.watching };
       client.sendGameEvent(data);
     }
   });
@@ -580,6 +591,7 @@ MeisenUI.prototype.setupEnd = function(data) {
       player.x = player.y = 0;
       player.move(0, i * (PPANEL_HEIGHT+8) * PLAYER_SCALE_END);
       player.scale(PLAYER_SCALE_END, PLAYER_SCALE_END, 0, 0);
+      player.updateHand([]);
       player.updateName(playernames[i]);
     }
   }
@@ -590,25 +602,31 @@ MeisenUI.prototype.setupEnd = function(data) {
         var card = this.paper.card(trick.table[i], 0, 0);
         player.addcard(card);
         if (i == trick.start || i == trick.playerid) {
-          var frame = this.paper.rect(0, 0, CARD_WIDTH-2, CARD_HEIGHT-2);
-          frame.attr({'stroke': i == trick.playerid?'#FF0000':'#00BB00', 'stroke-width': '2px'});
-          card.push(frame);
+          card.setFrame(i == trick.playerid?'#FF0000':'#00BB00');
         }
       }
     }
-    if (this.result) {
-      this.result.remove();
-      this.result = null;
-    }
-    this.result = this.paper.group();
-    this.result.move(PPANEL_WIDTH*PLAYER_SCALE_END, PPANEL_HEIGHT);
-    var p = data.point > 0 ? (this.head)%2: (this.head+1)%2;
-    var pt = data.point > 0 ? +data.point : -data.point;
-    var t = playernames[p] + '\n \n'+playernames[p+2] + '\n \n +' + pt;
-    var text = this.paper.text(0, 64*i, t);
-    text.attr({'text-anchor': 'start'});
-    this.result.push(text);
   }, this);
+  if (!this.result) {
+    this.result = this.paper.group();
+    this.result.move(PPANEL_WIDTH*PLAYER_SCALE_END, PPANEL_HEIGHT*PLAYER_SCALE_END+48);
+  }
+  for (var p = 0; p < 2; p++) {
+    var pt = 0, pts = data.players[p].points/2;
+    if (p == this.head%2) {
+      if (data.point > 0) pt = +data.point/2;
+    } else {
+      if (data.point < 0) pt = -data.point/2;
+    }
+    var t = playernames[p] + ' &\n'+playernames[p+2] +
+            '\n　+' + pt + ' => ' + pts;
+    if (!this.result['pair'+p]) {
+      this.result['pair'+p] = this.paper.text(0, 96*p, '');
+      this.result.push(text);
+    }
+    var text = this.result['pair'+p];
+    text.attr({'text-anchor': 'start', 'text': t});
+  }
 };
 MeisenUI.prototype.setWatching = function(pos) {
   this.watching = pos;
@@ -628,6 +646,7 @@ MeisenUI.prototype.action_init = function() {
   }
 };
 MeisenUI.prototype.action_setup = function(data) {
+  this.reset();
   for (var p in data.players) {
     this.setupPlayer(data.players[p]);
   }
@@ -711,6 +730,8 @@ MeisenUI.prototype.action_play = function(data) {
 MeisenUI.prototype.action_endtrick = function(data) {
   this.state = 'endtrick';
   this.setCurrentPlayer(data.current);
+  var card = this.table.players[data.current];
+  card && card.setFrame('#FF0000');
 };
 MeisenUI.prototype.action_endendtrick = function(data) {
   this.setCurrentPlayer(data.current);
@@ -768,6 +789,10 @@ MeisenUI.prototype.action_load = function(data) {
   }
   if (data.trick != null) {
     this.setupTable(data.trick);
+    if (this.state == 'endtrick') {
+      var card = this.table.players[data.current];
+      card && card.setFrame('#FF0000');
+    }
   }
   if (data.huki != null) {
     this.head = data.huki.id;

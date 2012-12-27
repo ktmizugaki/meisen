@@ -143,6 +143,7 @@ Member.prototype.sendPlayers = function(players) {
   this.sendGameEvent(players);
 };
 Member.prototype.sendGameEvent = function(data) {
+  console.log('send:', JSON.stringify(data));
   this.socket.emit('game', data);
 };
 

@@ -10,6 +10,7 @@ exports.start = function(port) {
     roomlist.createRoom();
   }
 
+  server.io.disable('log');
   server.io.sockets.on('connection', function(socket) {
     memberlist.push(new Member(server, socket));
   });
