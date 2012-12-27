@@ -308,9 +308,23 @@ function MeisenUI() {
   this.head = null;
   this.kirihuda = null;
   this.table = null;
+  this.btnAck = null;
   this.watching = 0;
   this.playernames = [null, null, null, null];
+  this.onClickAck = MeisenUI.onClickAck(this);
 }
+MeisenUI.onClickAck = function(meisen) {
+  return function(){
+    if (meisen.state == 'endtrick') {
+      var data = { action: 'ackendtrick', player: meisen.watching };
+      client.sendGameEvent(data);
+    }
+    if (meisen.state == 'result') {
+      var data = { action: 'ackresult', player: meisen.watching };
+      client.sendGameEvent(data);
+    }
+  }
+};
 MeisenUI.prototype.onResize = function() {
   var width = this.canvas.width(), height = this.canvas.height();
   this.paper.changeSize(width, height, true, true);
@@ -335,25 +349,6 @@ MeisenUI.prototype.init = function() {
   });
   $('#game-setup').click(function(){
     client.sendGameEvent({ action: 'setup', player: meisen.watching });
-  });
-  $('#game-huku').click(function(){
-    var huki = $('#input-huki').val();
-    if (huki.length >= 1) {
-      var data = { action: 'huku', player: meisen.watching };
-      data.suit = huki.substring(0, 1);
-      data.trick = huki.substring(1) || null;
-      client.sendGameEvent(data);
-    }
-  });
-  $('#game-ack').click(function(){
-    if (meisen.state == 'endtrick') {
-      var data = { action: 'ackendtrick', player: meisen.watching };
-      client.sendGameEvent(data);
-    }
-    if (meisen.state == 'result') {
-      var data = { action: 'ackresult', player: meisen.watching };
-      client.sendGameEvent(data);
-    }
   });
   this.reset();
 };
@@ -620,13 +615,19 @@ MeisenUI.prototype.setupEnd = function(data) {
     }
     var t = playernames[p] + ' &\n'+playernames[p+2] +
             '\n　+' + pt + ' => ' + pts;
-    if (!this.result['pair'+p]) {
-      this.result['pair'+p] = this.paper.text(0, 96*p, '');
+    var text = this.result['pair'+p];
+    if (!text) {
+      this.result['pair'+p] = text = this.paper.text(0, 96*p, '');
       this.result.push(text);
     }
-    var text = this.result['pair'+p];
     text.attr({'text-anchor': 'start', 'text': t});
   }
+  if (this.btnAck) {
+    this.btnAck.remove();
+    this.btnAck = null;
+  }
+  this.btnAck = this.paper.text(430, 320, 'OK');
+  this.btnAck.click(this.onClickAck);
 };
 MeisenUI.prototype.setWatching = function(pos) {
   this.watching = pos;
@@ -732,9 +733,19 @@ MeisenUI.prototype.action_endtrick = function(data) {
   this.setCurrentPlayer(data.current);
   var card = this.table.players[data.current];
   card && card.setFrame('#FF0000');
+  if (this.btnAck) {
+    this.btnAck.remove();
+    this.btnAck = null;
+  }
+  this.btnAck = this.paper.text(352, 234, 'OK');
+  this.btnAck.click(this.onClickAck);
 };
 MeisenUI.prototype.action_endendtrick = function(data) {
   this.setCurrentPlayer(data.current);
+  if (this.btnAck) {
+    this.btnAck.remove();
+    this.btnAck = null;
+  }
   var player = this['player'+data.current];
   if (player) {
     player.updateTrickCount(player.tricks.length+1);

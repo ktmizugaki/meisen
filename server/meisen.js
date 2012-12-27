@@ -436,7 +436,6 @@ Meisen.prototype.action_ackresult = function(data) {
   }
   if (data) {
     this.ack |= 1<<data.player;
-    this.ack = 0xf;
   }
   if ((this.ack&0xf) != 0xf) {
     return;
