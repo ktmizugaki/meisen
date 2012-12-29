@@ -37,3 +37,4 @@ _.each('INIT,READY,HUKI,NEGLI,PLAY,ENDTRICK,RESULT,END'.split(','), function(val
 });
 
 var MEISEN_NUM_PLAYER = 4;
+var MEISEN_SUIT_ORDER = 'bpscdhn';

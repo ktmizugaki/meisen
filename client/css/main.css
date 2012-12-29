@@ -107,11 +107,7 @@ object.svg {
 #room #canvas {
   position: absolute;
   left: 0px; top: 2em;
-  right: 0px; bottom: 1.4em;
-}
-#room #room-control {
-  position: absolute;
-  width: 100%; height: 1.4em; bottom: 0;
+  right: 0px; bottom: 0px;
 }
 
 /********** room-right       **********/

@@ -8,7 +8,7 @@ var CARD_SCALE = Math.min(CARD_WIDTH/IMAGE_CARD_WIDTH, CARD_HEIGHT/IMAGE_CARD_HE
 var CARD_SCALE_TEXT = 'scale('+CARD_SCALE+')';
 var CARD_COLORS = {
   s: '#000000', c: '#000000', d: '#E6180A', h: '#E6180A',
-  n: '#5C5C5C', j: '#000000', p: '#00BB00'
+  n: '#3f3f3f', j: '#000000', p: '#00BB00'
 };
 var KIRIHUDA_TEXT = {
   c: 'クラブ', s: 'スペード', h: 'ハート', d: 'ダイア', n: 'なし'
@@ -311,8 +311,14 @@ function MeisenUI() {
   this.btnAck = null;
   this.watching = 0;
   this.playernames = [null, null, null, null];
+  this.onClickSetup = MeisenUI.onClickSetup(this);
   this.onClickAck = MeisenUI.onClickAck(this);
 }
+MeisenUI.onClickSetup = function(meisen) {
+  return function(){
+    client.sendGameEvent({ action: 'setup', player: meisen.watching });
+  };
+};
 MeisenUI.onClickAck = function(meisen) {
   return function(){
     if (meisen.state == 'endtrick') {
@@ -323,7 +329,7 @@ MeisenUI.onClickAck = function(meisen) {
       var data = { action: 'ackresult', player: meisen.watching };
       client.sendGameEvent(data);
     }
-  }
+  };
 };
 MeisenUI.prototype.onResize = function() {
   var width = this.canvas.width(), height = this.canvas.height();
@@ -347,9 +353,6 @@ MeisenUI.prototype.init = function() {
   $('#game-init').click(function(){
     client.sendGameEvent({ action: 'init', player: meisen.watching });
   });
-  $('#game-setup').click(function(){
-    client.sendGameEvent({ action: 'setup', player: meisen.watching });
-  });
   this.reset();
 };
 MeisenUI.prototype.reset = function() {
@@ -362,6 +365,8 @@ MeisenUI.prototype.reset = function() {
     this['player'+i] = null;
   }
   this.result = null;
+  this.btnAck = null;
+  this.btnSetup = null;
   this.paper.clear();
   this.paper.canvas.appendChild(svgCards.children[0].cloneNode(true));
   this.onResize();
@@ -533,6 +538,18 @@ MeisenUI.prototype.setupHukiList = function(data) {
     }, this);
   }, this);
 };
+MeisenUI.prototype.updateHukiList = function(huki) {
+  if (huki) {
+    _.each(this.hukiPanel.children, function(g) {
+      if (g.suit && g.trick && !g.disabled) {
+        if (g.trick < huki.trick || (g.trick == huki.trick && MEISEN_SUIT_ORDER.indexOf(g.suit) <= huki.suitOrder)) {
+          g.disabled = true;
+          g.attr({opacity:0.6});
+        }
+      }
+    });
+  }
+};
 MeisenUI.prototype.setupKirihuda = function(data) {
   if (!data) {
     if (this.kirihuda) {
@@ -645,9 +662,18 @@ MeisenUI.prototype.action_init = function() {
   for (var i = 0; i < 4; i++) {
     this.setupPlayer({ id:i, hand:[], huki:null});
   }
+  if (!this.btnSetup) {
+    this.btnSetup = this.paper.text(352, 234, '開始');
+    this.btnSetup.click(this.onClickSetup);
+  }
 };
 MeisenUI.prototype.action_setup = function(data) {
   this.reset();
+  this.state = 'setup';
+  if (this.btnSetup) {
+    this.btnSetup.remove();
+    this.btnSetup = null;
+  }
   for (var p in data.players) {
     this.setupPlayer(data.players[p]);
   }
@@ -665,6 +691,9 @@ MeisenUI.prototype.action_huku = function(data) {
     if (player) {
       player.huku(data2.huki);
     }
+  }
+  if (data.huki) {
+    this.updateHukiList(data.huki);
   }
   this.state = 'huki';
 };
@@ -787,6 +816,9 @@ MeisenUI.prototype.action_load = function(data) {
   if (this.state == 'huki') {
     this.setupAgari(data.agari);
     this.setupHukiList(data);
+    if (data.huki) {
+      this.updateHukiList(data.huki);
+    }
   }
   if (this.state == 'play') {
     this.setupKirihuda(data.huki);
@@ -804,9 +836,6 @@ MeisenUI.prototype.action_load = function(data) {
       var card = this.table.players[data.current];
       card && card.setFrame('#FF0000');
     }
-  }
-  if (data.huki != null) {
-    this.head = data.huki.id;
   }
   if (data.current != null) {
     this.setCurrentPlayer(data.current);

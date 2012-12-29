@@ -6,6 +6,6 @@
 <g id="m_diamond"><use xlink:href="svg-cards.svg#diamond" transform="rotate(180,4,4)"/></g>
 <g id="m_heart"><use xlink:href="svg-cards.svg#heart" transform="rotate(180,4,4)"/></g>
 <g id="m_spade"><use xlink:href="svg-cards.svg#spade" transform="rotate(180,4,4)"/></g>
-<g id="m_notr"><text fill="#666" transform="translate(1,15)" font-family="Bitstream Vera Serif" font-weight="bold" font-size="21">N</text></g>
+<g id="m_notr"><text fill="#3f3f3f" transform="translate(1,15)" font-family="Bitstream Vera Serif" font-weight="bold" font-size="21">N</text></g>
 </g>
 </svg>

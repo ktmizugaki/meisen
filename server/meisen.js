@@ -379,6 +379,9 @@ Meisen.prototype.action_ackendtrick = function(data) {
   this.invokeCallback(data);
   this.clearTimeout();
   this.ack = 0;
+  _.each(this.trick.table, function(card) {
+    card.__acl = Target.PLAYERS[this.trick.playerid].acbit;
+  }, this);
   this.tricks.push(this.trick);
   this.trick = null;
   if (this.tricks.length >= 10) {
