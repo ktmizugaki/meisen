@@ -366,8 +366,11 @@ MeisenUI.prototype.reset = function() {
   this.result = null;
   this.btnAck = null;
   this.btnSetup = null;
+  var time = new Date().getTime();
   this.paper.clear();
   this.paper.canvas.appendChild(svgCards.firstElementChild.cloneNode(true));
+  time = new Date().getTime() - time;
+  CardImageMode = time > 150? 'text': 'svg';
   this.onResize();
 };
 MeisenUI.prototype.onData = function(data) {
