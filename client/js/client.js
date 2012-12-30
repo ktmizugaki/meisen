@@ -158,9 +158,12 @@ var client = (function(){
 
   $(document).ready(function(){
     client.init();
-    $('#svg-cards')[0].addEventListener('load', function(){
-      meisen.init();
-    }, false);
+    var count = 0;
+    var func = function() {
+      if (++count >= 2) meisen.init();
+    }
+    $('#svg-cards')[0].addEventListener('load', func, false);
+    $('#svg-marks')[0].addEventListener('load', func, false);
   });
 
   return client;

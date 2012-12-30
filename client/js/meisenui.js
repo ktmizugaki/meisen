@@ -338,16 +338,15 @@ MeisenUI.prototype.onResize = function() {
 MeisenUI.prototype.init = function() {
   svgCards = $('svg', $('#svg-cards')[0].contentDocument)[0];
   svgMarks = $('svg', $('#svg-marks')[0].contentDocument)[0];
-  var group = svgCards.children[1];
-  for (var i = 0, ii = group.children.length; i < ii; i++) {
-    var g = group.children[i];
-    var x = g.children[0].getAttribute('x'), y = g.children[0].getAttribute('y');
+  var group = svgCards.firstElementChild.nextElementSibling;
+  for (var g = group.firstElementChild; g != null; g = g.nextElementSibling) {
+    var x = g.firstElementChild.getAttribute('x'), y = g.firstElementChild.getAttribute('y');
     var t = 'translate('+(-x)+','+(236-y)+')';
     g.setAttribute('transform', t);
   }
   this.canvas = $('#canvas');
   var width = this.canvas.width(), height = this.canvas.height();
-  this.paper = new ScaleRaphael('canvas', CANVAS_WIDTH, CANVAS_HEIGHT);
+  this.paper = ScaleRaphael('canvas', CANVAS_WIDTH, CANVAS_HEIGHT);
   var meisen = this;
   $(window).resize(_.bind(this.onResize, this));
   $('#game-init').click(function(){
@@ -368,7 +367,7 @@ MeisenUI.prototype.reset = function() {
   this.btnAck = null;
   this.btnSetup = null;
   this.paper.clear();
-  this.paper.canvas.appendChild(svgCards.children[0].cloneNode(true));
+  this.paper.canvas.appendChild(svgCards.firstElementChild.cloneNode(true));
   this.onResize();
 };
 MeisenUI.prototype.onData = function(data) {

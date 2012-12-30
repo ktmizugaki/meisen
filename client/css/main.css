@@ -51,7 +51,8 @@ div.vert-scroll {
   overflow-y: scroll;
 }
 object.svg {
-  display: none;
+  position: absolute;
+  opacity: 0;
 }
 
 /************** login            **************/
