@@ -237,7 +237,7 @@ Meisen.prototype.action_huku = function(data) {
       players: [ Meisen.playerToData(0xffff)(player) ]
     };
     this.invokeCallback(data);
-    this.setTimeout(this.state_setup, 5000);
+    this.setTimeout(this.state_setup, 10000);
     return;
   } if (suitStr == 'p') {
     player.huki = 'p';

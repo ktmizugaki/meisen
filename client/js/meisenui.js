@@ -1,14 +1,14 @@
 var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 360;
 var CARD_WIDTH = 40;
-var CARD_HEIGHT = CARD_WIDTH*14/9;
+var CARD_HEIGHT = CARD_WIDTH*3/2;
 var PPANEL_WIDTH = CARD_WIDTH*11, PPANEL_HEIGHT = CARD_HEIGHT+32;
-var IMAGE_CARD_WIDTH = 167.575, IMAGE_CARD_HEIGHT = 243.137;
+var IMAGE_CARD_WIDTH = 172, IMAGE_CARD_HEIGHT = 252;
 var CARD_SCALE = Math.min(CARD_WIDTH/IMAGE_CARD_WIDTH, CARD_HEIGHT/IMAGE_CARD_HEIGHT);
 var CARD_SCALE_TEXT = 'scale('+CARD_SCALE+')';
 var CARD_COLORS = {
   s: '#000000', c: '#000000', d: '#E6180A', h: '#E6180A',
-  n: '#3f3f3f', j: '#000000', p: '#00BB00'
+  n: '#3f3f3f', j: '#000000', p: '#00BB00', b: '#dd4444',
 };
 var KIRIHUDA_TEXT = {
   c: 'クラブ', s: 'スペード', h: 'ハート', d: 'ダイア', n: 'なし'
@@ -219,6 +219,8 @@ Raphael.fn.player.proto = {
       var color = CARD_COLORS[huki.charAt(0)];
       if (huki == 'p') {
         huki = 'Pass';
+      } else if (huki == 'b') {
+        huki = 'Broken';
       } else {
         var suit = huki.charAt(0);
         var trick = huki.substr(1);
@@ -645,7 +647,7 @@ MeisenUI.prototype.setupEnd = function(data) {
     this.btnAck.remove();
     this.btnAck = null;
   }
-  this.btnAck = this.paper.text(430, 320, 'OK');
+  this.btnAck = this.paper.text(430, 320, '<OK>');
   this.btnAck.click(this.onClickAck);
 };
 MeisenUI.prototype.setWatching = function(pos) {
@@ -665,7 +667,7 @@ MeisenUI.prototype.action_init = function() {
     this.setupPlayer({ id:i, hand:[], huki:null});
   }
   if (!this.btnSetup) {
-    this.btnSetup = this.paper.text(352, 234, '開始');
+    this.btnSetup = this.paper.text(352, 234, '<開始>');
     this.btnSetup.click(this.onClickSetup);
   }
 };
@@ -692,6 +694,9 @@ MeisenUI.prototype.action_huku = function(data) {
     var player = this['player'+data2.id];
     if (player) {
       player.huku(data2.huki);
+      if (data2.huki == 'b') {
+        player.updateHand(data2.hand);
+      }
     }
   }
   if (data.huki) {
@@ -768,7 +773,7 @@ MeisenUI.prototype.action_endtrick = function(data) {
     this.btnAck.remove();
     this.btnAck = null;
   }
-  this.btnAck = this.paper.text(352, 234, 'OK');
+  this.btnAck = this.paper.text(352, 234, '<OK>');
   this.btnAck.click(this.onClickAck);
 };
 MeisenUI.prototype.action_endendtrick = function(data) {
