@@ -161,6 +161,7 @@ var client = (function(){
     var count = 0;
     var func = function() {
       if (++count >= 2) meisen.init();
+      $(this).css('display', 'none');
     }
     $('#svg-cards')[0].addEventListener('load', func, false);
     $('#svg-marks')[0].addEventListener('load', func, false);
