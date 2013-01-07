@@ -50,6 +50,12 @@ div.vert-scroll {
   overflow-x: hidden;
   overflow-y: scroll;
 }
+.align-left {
+  text-align: left;
+}
+.align-right {
+  text-align: right;
+}
 object.svg {
   position: absolute;
   opacity: 0;
@@ -58,6 +64,11 @@ object.svg {
 /************** login            **************/
 #login div.content {
   left: 210px; top: 144px;
+}
+
+/************** newroom          **************/
+#newroom div.content {
+  left: 160px; top: 144px;
 }
 
 /************** roomlist         **************/

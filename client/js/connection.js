@@ -77,6 +77,9 @@ Connection.prototype.getRoomList = function() {
 Connection.prototype.genRoomId = function(fn) {
   this.socket.emit('genroomid', '', fn);
 };
+Connection.prototype.createRoom = function(data) {
+  this.socket.emit('createroom', data);
+};
 Connection.prototype.enterRoom = function(roomid) {
   this.socket.emit('enterroom', roomid);
 };

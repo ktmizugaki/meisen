@@ -11,6 +11,7 @@ function Member(server, socket) {
   socket.on('login', _.bind(this.onLogin, this));
   socket.on('getroomlist', _.bind(this.onGetRoomList, this));
   socket.on('genroomid', _.bind(this.onGenRoomId, this));
+  socket.on('createroom', _.bind(this.onCreateRoom, this));
   socket.on('enterroom', _.bind(this.onEnterRoom, this));
   socket.on('chatmessage', _.bind(this.onChatMessage, this));
   socket.on('game', _.bind(this.onGameEvent, this));
@@ -66,6 +67,7 @@ Member.prototype.onDisconnect = function() {
   this.invokeListener('onDisconnect', this.name);
 };
 Member.checkNameReg = /^\s*$/;
+Member.checkPassReg = /[^a-zA-Z0-9]/;
 Member.prototype.onLogin = function(data) {
   if (this.name !== null || !data || !data.name) {
     this.disconnect();
@@ -91,6 +93,32 @@ Member.prototype.onGetRoomList = function() {
 };
 Member.prototype.onGenRoomId = function(data, fn) {
   this.invokeListener('onGenRoomId', fn);
+};
+Member.prototype.onCreateRoom = function(data) {
+  if (this.room !== null) {
+    return;
+  }
+  if (!data) {
+    return;
+  }
+  var options = {};
+  options.name = sanitizer.escape(sanitizer.sanitize(''+data.name));
+  options.pass = sanitizer.escape(sanitizer.sanitize(''+data.pass));
+  if (options.name.match(Member.checkNameReg)) {
+    console.log('create room: invalid name:', options.name);
+    return;
+  }
+  if (options.pass.match(Member.checkPassReg)) {
+    console.log('create room: invalid pass:', options.pass);
+    return;
+  }
+  var room = this.server.getRoom(options.name);
+  if (room) {
+    console.log('create room: room exists:', options.name);
+    return;
+  }
+  this.invokeListener('onCreateRoom', options);
+  this.onEnterRoom(options.name);
 };
 Member.prototype.onEnterRoom = function(data) {
   if (this.room !== null) {

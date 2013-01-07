@@ -54,6 +54,13 @@ exports.start = function(port) {
     }
     fn(roomlist.newRoomName());
   };
+  server.onCreateRoom = function(member, data) {
+    var room = roomlist.createRoom(data);
+    var rooms = _.map(roomlist.rooms, function(room) { return room.getName(); });
+    _.each(memberlist, function(member) {
+      member.sendRoomList(rooms);
+    });
+  };
 }
 
 exports.start(process.env.PORT || 60726);

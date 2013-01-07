@@ -24,8 +24,8 @@
       <form id="form-login" action="none" method="get">
         名前：<input type="text" id="name-login" size="24" maxlength="16">
       </form>
+      <div id="state-login"></div>
       <a href="" id="button-login" class="button">[ログイン]</a>
-      <div id="state-login">未接続</div>
     </div>
   </article>
   <article id="roomlist" class="fixed">
@@ -37,6 +37,17 @@
       <div id="list-room" class="vert-scroll">
         <a href="" class="room button" roomid="部屋1001">部屋1001</a>
       </div>
+    </div>
+  </article>
+  <article id="newroom" class="fixed">
+    <h2 class="name">部屋作成</h2>
+    <div class="content centerize">
+      <form id="form-newroom" class="align-right" action="none" method="get">
+        部屋名：<input type="text" id="name-newroom" size="24" maxlength="16"><br/>
+            鍵：<input type="text" id="pass-newroom" size="24" maxlength="16">
+      </form>
+      <div id="state-newroom"></div>
+      <a href="" id="button-newroom-create" class="button">[作成]</a>
     </div>
   </article>
   <article id="room" class="relative">
