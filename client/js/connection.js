@@ -9,6 +9,7 @@ function Connection(client, name) {
   socket.on('ready', _.bind(this.onReady, this));
   socket.on('roomlist', _.bind(this.onRoomList, this));
   socket.on('enter', _.bind(this.onEnter, this));
+  socket.on('leave', _.bind(this.onLeave, this));
   socket.on('memberlist', _.bind(this.onMemberList, this));
   socket.on('addmember', _.bind(this.onAddMember, this));
   socket.on('removemember', _.bind(this.onRemoveMember, this));
@@ -39,6 +40,11 @@ Connection.prototype.onRoomList = function(data) {
 Connection.prototype.onEnter = function(data) {
   if (this.client.socket === this && data) {
     this.client.enter(data);
+  }
+};
+Connection.prototype.onLeave = function() {
+  if (this.client.socket === this) {
+    this.client.leave();
   }
 };
 Connection.prototype.onMemberList = function(data) {
@@ -82,6 +88,9 @@ Connection.prototype.createRoom = function(data) {
 };
 Connection.prototype.enterRoom = function(roomid) {
   this.socket.emit('enterroom', roomid);
+};
+Connection.prototype.leaveRoom = function() {
+  this.socket.emit('leaveroom');
 };
 Connection.prototype.sendChat = function(message) {
   this.socket.emit('chatmessage', message);

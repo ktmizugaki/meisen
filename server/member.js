@@ -13,6 +13,7 @@ function Member(server, socket) {
   socket.on('genroomid', _.bind(this.onGenRoomId, this));
   socket.on('createroom', _.bind(this.onCreateRoom, this));
   socket.on('enterroom', _.bind(this.onEnterRoom, this));
+  socket.on('leaveroom', _.bind(this.onLeaveRoom, this));
   socket.on('chatmessage', _.bind(this.onChatMessage, this));
   socket.on('game', _.bind(this.onGameEvent, this));
 }
@@ -134,6 +135,16 @@ Member.prototype.onEnterRoom = function(data) {
     room: room.getName(),
   });
   this.invokeListener('onEnterRoom', data);
+};
+Member.prototype.onLeaveRoom = function() {
+  if (this.room === null) {
+    return;
+  }
+  var room = this.room;
+  this.room = null;
+  this.socket.emit('leave');
+  this.invokeListener('onLeaveRoom');
+  this.removeListener(room);
 };
 Member.prototype.onChatMessage = function(data) {
   if (!this.room) {

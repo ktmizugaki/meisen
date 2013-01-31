@@ -44,6 +44,9 @@ var client = (function(){
       client.enterRoom($(this).attr('roomid'));
       return false;
     });
+    $('#button-leave-room').click(function(){
+      client.leaveRoom();
+    });
     $('#button-newroom-create').click(function() {
       client.createRoom();
       return false;
@@ -115,6 +118,11 @@ var client = (function(){
       client.socket.enterRoom(roomid);
     }
   };
+  client.leaveRoom = function() {
+    if (client.socket !== null) {
+      client.socket.leaveRoom();
+    }
+  };
   client.sendChat = function(form) {
     if (client.socket !== null) {
       var $input = $('#chat-room', form);
@@ -142,6 +150,13 @@ var client = (function(){
   client.enter = function(roominfo) {
     client.setActive('#room');
     $('#room #roomname').text(roominfo.room);
+    $('#room #chat').empty();
+    meisen.reset();
+  };
+  client.leave = function() {
+    client.setActive('#roomlist');
+    $('#room #roomname').text('');
+    $('#room-name-list').empty();
     $('#room #chat').empty();
     meisen.reset();
   };
